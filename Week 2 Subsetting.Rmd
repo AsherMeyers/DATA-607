@@ -1,0 +1,132 @@
+---
+title: "Bridges Subsetting for DATA 607 Week 2"
+author: "Asher Meyers"
+date: "January 30, 2016"
+output: html_document
+---
+
+Let's bring in a small database of bridges in the US. The data we bring in will include:
+*ID, a unique name the database maker made up.
+
+*River, the river the bridge crosses
+
+*State, the location of the bridge, in terms of a number that corresponds to a state.
+
+*Date, the year it was built
+
+*Purpose, whether it's for people walking or driving, or for trains or water (i.e. aqueducts).
+
+*Type, wood, suspension, simple T, arch, cantilever or cont-T.
+
+```{r}
+BridgesOriginal <- read.csv(url("https://archive.ics.uci.edu/ml/machine-learning-databases/bridges/bridges.data.version1"))
+bridges <- as.data.frame(BridgesOriginal)
+names(bridges) = c("ID","River","State","Date","Purpose","Length","Lanes","Clear","T or D","Material","Span","Rel","Type")
+head(bridges)
+```
+
+Let's look at some summary data. First, a histogram of when these bridges were built
+
+```{r}
+hist(bridges$Date)
+```
+
+A count of bridge purposes:
+
+```{r}
+Purposes <- table(bridges$Purpose)
+Purposes
+```
+
+A frequency table of bridge purposes:
+
+```{r}
+PurposeFreqs <- Purposes/sum(Purposes)
+PurposeFreqs
+
+```
+
+A pie chart of bridge purposes:
+
+```{r}
+PurposeRatios <- Purposes/sum(Purposes)
+PurposeLabels <- c("Aqueduct","Highway","Railroad","Walking")
+pie(PurposeRatios, labels = PurposeLabels, main = "Purpose of Bridges Built")
+```
+
+A frequency chart of bridge purposes:
+
+```{r}
+PurposeFreqs <- Purposes/sum(Purposes)
+barplot(PurposeFreqs)
+```
+
+We see that two thirds of the bridges are highways, and about 30% are for trains. 
+
+Let's look at histograms again, but this time of subsets of the bridges data, separated by type, i.e. whether they were highway or railroad bridges.
+
+First, railroad bridges - a histogram of the dates that they were installed:
+
+```{r}
+RRBridges <- subset(bridges, bridges$Purpose == "RR")
+hist(RRBridges$Date)
+```
+
+
+Now, let's look at a histogram of highway bridge dates of installation.
+
+```{r}
+HighwayBridges <- subset(bridges, bridges$Purpose == "HIGHWAY")
+hist(HighwayBridges$Date)
+```
+
+We see a swift dropoff in rail bridge construction around 1920. Let's use that date as a dividing line, and test a hunch: that we started building more highways after the introduction of the automobile. We'll arbitrarily set that date of auto introduction in 1920. 
+
+We start by subsetting our dataset into pre-1920 and >= 1920. First for pre-1920 bridges:
+
+```{r}
+OldBridges <- subset(bridges, Date < 1920)
+OldPurposes <- table(OldBridges$Purpose)
+OldPurposeRatios <- OldPurposes/sum(OldPurposes)
+barplot(OldPurposeRatios, main = "Pre-1920 bridges")
+
+```
+
+Now for bridges built in 1920 and onwards:
+
+```{r}
+NewBridges <- subset(bridges, Date > 1919)
+NewPurposes <- table(NewBridges$Purpose)
+NewPurposeRatios <- NewPurposes/sum(NewPurposes)
+barplot(NewPurposeRatios, main = "Bridges from 1920 and Onwards")
+```
+
+Let's take at the golden age of railroads, from 1880 to 1920:
+
+```{r}
+GoldenBridges <- subset(bridges, Date < 1921 & Date > 1879)
+GoldenPurposes <- table(GoldenBridges$Purpose)
+GoldenPurposeRatios <- GoldenPurposes/sum(GoldenPurposes)
+barplot(GoldenPurposeRatios, main = "Bridges from 1880-1920, the Golden Age of Railroads")
+```
+
+And lastly, for the golden age of highway bridges, 1920 to 1960:
+
+```{r}
+PetroBridges <- subset(bridges, Date > 1919 & Date < 1961)
+PetroPurposes <- table(PetroBridges$Purpose)
+PetroPurposeRatios <- PetroPurposes/sum(PetroPurposes)
+barplot(PetroPurposeRatios, main = "Bridges from 1880-1920, the Golden Age of Highways")
+```
+
+We see there was a dramatic decline in the erection of rail bridges around 1920.
+
+We see that the proportion of railroads went down over time, while the proportion of highways went up over time. There are at least two possible explanations:
+
+1. Automobile travel displaced train travel, and therefore so did the supporting infrastructure - we starting building highways instead of train tracks, and bridge construction reflects this.
+
+2. The rail network got 'built out' earlier, so there wasn't much need to add bridge capacity for trains in later years.
+
+There are many other possible considerations of course - train tracks were often privately financed, while highways were and are almost always paid for by the general taxpayer. The federal government busted up rail monopolies which diminished profits and thus the ability to invest in infrastructure, while the government increasingly subsidized highway construction making road use prices artifically low or free for highway users. 
+
+Merely looking at percentages doesn't allow us to conclusively decide among competing hypotheses. But, there is a swift dropoff in rail bridge construction right as automobiles became popular, circa 1920. That is highly suggestive - that when cars came on the scene, America mostly abandoned rail bridge construction. Of course, this is only a dataset on bridges, and rail capacity in general may show a different pattern.
