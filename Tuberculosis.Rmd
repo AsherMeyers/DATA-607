@@ -1,0 +1,177 @@
+---
+title: "Tuberculosis"
+author: "Asher Meyers"
+date: "February 12, 2016"
+output: html_document
+---
+
+My R skills are pretty basic, and I like simple code, so I will try to keep the code as simple as possible, possibly at the expense of brevity. I will also check my results at every step to make sure I'm getting the desired result.
+
+Let's bring in the original TB dataset, and look at the first few rows. Admittedly, I had to add a header row to the original dataset, as the Afghan women of 1995 were getting munched up when they were the first row.
+
+```{r}
+tb <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/tb.csv"))
+head(tb)
+```
+
+Column headers are missing. So first, we'll add column names
+
+```{r}
+names(tb) = c("country","year","sex","child","adult","elderly")
+head(tb)
+```
+
+We see there are negative values, -1, which is impossible. If you look at the original dataset, you see these values were null. So we'll convert those negative values to zero.
+
+```{r}
+tb[tb=="-1"] <- 0 # Replace every value of -1 with 0
+head(tb)
+```
+
+Let's scan the country names to make sure everything is spelled correctly:
+
+```{r}
+unique(tb$country)
+```
+
+We see that Côte d'Ivoire is spelled as CÃ´te d'Ivoire. Let's fix that. 
+
+```{r}
+
+tb$country <- as.character(tb$country)
+tb$country[tb$country == "CÃ´te d'Ivoire"] <- "Côte d'Ivoire"
+
+unique(tb$country)
+```
+
+Now it's fixed. This is important, because we will be sorting the data using spelling, so the spelling must be correct. 
+
+NB: the method for finding and replacing the erroneous country name is from here: http://stackoverflow.com/questions/5824173/replace-a-value-in-a-data-frame-based-on-a-conditional-if-statement-in-r
+
+Now, we want to know the overall rate of TB, so we'll have to combine all the demographic groups into one field. First, we'll keep the sexes separate, but combine the different age groups.
+
+We compile a column that sums the child, adult and elderly cases, and put that column in.
+
+```{r}
+cases <- tb$child + tb$adult + tb$elderly
+names(cases) <- c("cases")
+tb <- data.frame(tb,cases)
+head(tb)
+```
+
+Now, we sum the sexes, so that each row represents a single year. We separate the data frames into male and female dataframes, and then sum the cases of those respective dataframes. 
+
+Then we take the country and year from one of the sex-specific dataframes - it doesn't matter which sex, we just don't want the original dataset with both sexes, because that one has two rows for each country-year. I used the male dataset in the code below.
+
+```{r}
+tbmales <- subset(tb, tb$sex == "male")
+tbfemales <- subset(tb, tb$sex == "female")
+tbcasesall <- tbmales$cases + tbfemales$cases
+tball <- data.frame(tbmales$country,tbmales$year,tbcasesall)
+names(tball) <- c("country","year","cases")
+head(tball)
+```
+
+Now we need to figure out a rate for TB. To do that, we'll need the population at the given time. So we'll import the population data.
+
+
+```{r}
+population <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/population.csv"))
+head(population)
+str(population)
+```
+
+Let's check the population dataset for errors:
+
+```{r}
+unique(population$country)
+```
+
+Again, we see that Ivory Coast has a corrupted name. We'll fix that
+
+```{r}
+population$country <- as.character(population$country)
+population$country[population$country == "CÃ´te d'Ivoire"] <- "Côte d'Ivoire"
+```
+
+We see the population data is sorted a bit differently than our TB dataset - the TB dataset is sorted by country, then year, while the population dataset is sorted by year, then country. Before we can combine the two datasets, we have to align them.
+
+```{r}
+population <- population[order(population$country, population$year),]
+head(population)
+```
+
+Let's add the population column to our tball dataframe:
+
+```{r}
+tball <- data.frame(tball, population$population)
+names(tball) <- c("country", "year", "cases", "population")
+head(tball)
+```
+
+Now we'll add our rate column: Simply a column that is cases divided by population. We will multiply by 100,000, so that the rate will be in the units of TB cases per 100,000 people, per year. And we'll round it to two decimals.
+```{r}
+rate <- round((10^5)*tball$cases/tball$population,2)
+tball <- data.frame(tball, rate)
+names(tball) <- c("country", "year", "cases", "population", "rate")
+head(tball)
+```
+
+Given that even a country like the US has thousands of TB cases a year, odds are that any country reporting zero cases is simply not telling the truth - either out of ignorance (not recording the data) or malice (concealing the data to give a benign image). Let's trim out the data points that report zero cases. Of course, we changed lots of values to zero in the beginning, from -1, which presumably meant null value.
+
+```{r}
+tball <- subset(tball, tball$rate != 0)
+```
+
+Let's see which country and year had the highest TB rate
+
+```{r}
+tball[which.max(tball$rate),]
+```
+
+Average TB rates by country, alphabetized:
+
+```{r}
+tbcountry <- round(tapply(tball$rate, tball$country, mean),1)
+tbcountry
+```
+
+Top 10 TB rates by country:
+
+```{r}
+tbcountry <- sort(tbcountry, decreasing = TRUE)
+head(tbcountry, 10)
+tbcountrynames <- names(tbcountry)
+plot(tbcountry[1:10], xlim = c(1,12), ylim = c(100, 350))
+text(tbcountry[1:10], row.names(tbcountry[1:10]), cex=0.8, pos=4, col="red")
+```
+
+Average TB rates by year:
+
+```{r}
+tbyear <- round(tapply(tball$rate, tball$year, mean),1)
+plot(1995:2013, tbyear, main = "Average TB Rate By Year", ylim = c(0,100))
+```
+
+Analysis:
+
+In studying the TB rates, we can think of a few obvious questions.
+
+Who is getting infected most? Sub-Saharan African countries top the list, with poor Asian countries not far behind.
+
+```{r}
+head(tbcountry, 20)
+```
+
+Is it a matter of geography or economy? It's not clear from the data - both would seem to be factors; tropical climes are probably favorable to disease, and so is poverty. The poor of the world often cannot afford good sanitation; its absence contributes to the spread of disease.
+
+Why was there a sudden global increase in the rates of infection? TB after all is not a new disease. It may mostly be an artifact of data collection - perhaps countries got more serious about tracking infections. Many were not recording infections at all in the earlier years, and heir nascent reporting infrastructure may have undercounted relative to later years, i.e. they were 'just getting started.' Given the gaps in reporting, the data on its own is not very credible - one should probably confer with real life experts with hands on experience to gauge whether what change if any there is in infections. That said, the data is probably reliable enough to make order of magnitude comparisons - eg that infections are far more likely in a place like South Africa than the US.
+
+Lastly, here is a list of the difference between the maximum and minimum infection rates in the period studied. Many of the differences seem too great to be explained by a real change in TB prevalence.
+
+```{r}
+tbmax <- round(tapply(tball$rate, tball$country, max),1)
+tbmin <- round(tapply(tball$rate, tball$country, min),1)
+tbdiff <- sort(tbmax - tbmin, decreasing = TRUE)
+tbdiff
+```
