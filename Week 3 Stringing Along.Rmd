@@ -1,0 +1,59 @@
+---
+title: "Regular Expressions"
+author: "Asher Meyers"
+date: "February 13, 2016"
+output: html_document
+---
+
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+3. Let's encode our original string of names
+
+```{r}
+library(stringr)
+
+name <- c("Moe Szyslak", "Burns, C. Montgomery", "Rev. Timothy Lovejoy", "Ned Flanders", "Simpson, Homer", "Dr. Julius Hibbert")
+name
+```
+
+3a. Reorder names that start with their last name.
+
+First, identify the names that have their last name first.
+```{r}
+lastfirst <- str_detect(name,",")
+lastfirst
+```
+
+Split names separated by a comma into two vectors
+```{r}
+splitname <- str_split(name, ",")
+splitname
+```
+
+Then reverse the vector order, paste the vectors together with a space in between, trim the unnecessary space - but only for vectors that had their last name first. Then turn the list back into a vector
+```{r}
+
+for (i in 1:length(name)) {
+  if (lastfirst[i]) { 
+  splitname[i]<- str_trim(paste(rev(unlist(splitname[i])), collapse = " "))
+  }
+}
+
+splitname <- unlist(splitname)
+splitname
+```
+
+3b. Identify if the names in the vectors have a title - I use the rule "if a name starts with two or more letters followed by a period, it has a title"
+```{r}
+title <- str_detect(name, "^[[:alpha:]]{2,}\\.")
+title
+```
+
+3c. We'll remove the titles, and then count the number of spaces in each vector element. If the number of spaces is more than one, we conclude someone has more than one given name.
+```{r}
+untitled <- str_trim(str_replace(splitname, "^[[:alpha:]]{2,}\\.",""))
+polynymous <- str_count(untitled, " ") > 1
+polynymous
+```
