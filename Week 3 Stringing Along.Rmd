@@ -5,11 +5,7 @@ date: "February 13, 2016"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-3. Let's encode our original string of names
+Problem 3. Let's encode our original string of names
 
 ```{r}
 library(stringr)
@@ -70,15 +66,32 @@ A corrected version follows:
 
 ```{r}
 breaking <- c("<title>+++BREAKING NEWS+++</title>")
-extract <- str_extract(breaking, "^<[:alnum:]+>")
+str_extract(breaking, "^<[:alnum:]+>")
 ```
 
+Problem 8. Extract a formula from a string
+
+```{r}
+binomialstring <- c("(5-3)^2=5^2-2*5*3+3^2 conforms to the binomial theorem")
+str_extract(binomialstring, "[^0-9=+*()]+")
+```
+
+This doesn't work, because the caret and the hyphen are metacharacters that need to be preceded by a double slash, to indicate that those characters are being referenced specifically.
+
+```{r}
+str_extract(binomialstring, "[\\^\\-0-9=+*()]+")
+```
+
+Alternatively, since the formula is comprised of non-alphabet characters, we can simply exclude the alphabet characters, and trim any hanging spaces.
+```{r}
+str_trim(str_extract(binomialstring, "[^[:alpha:]]+"))
+```
 
 ```{r}
 code <- c("clcopCow1zmstc0d87wnkig7OvdicpNuggvhryn92Gjuwczi8hqrfpRxs5Aj5dwpn0TanwoUwisdij7Lj8kpf03AT5Idr3coc0bt7yczjatOaootj55t3Nj3ne6c4Sfek.r1w1YwwojigOd6vrfUrbz2.2bkAnbhzgv4R9i05zEcrop.wAgnb.SqoU65fPa1otfb7wEm24k6t3sR9zqe5fy89n6Nd5t9kc4fE905gmc4Rgxo5nhDk!gr")
 code <- str_replace_all(code, "e", "*")
 alphanum <- c(LETTERS, letters, 0:9,"\\.","\\!")
-str_replace_all(code, alphanum[which.max(charcount)], "e")
+#str_replace_all(code, alphanum[which.max(charcount)], "e")
 
 ```
 
