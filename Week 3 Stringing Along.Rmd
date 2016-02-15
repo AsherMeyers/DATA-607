@@ -5,7 +5,11 @@ date: "February 13, 2016"
 output: html_document
 ---
 
-Problem 3. Let's encode our original string of names
+This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+3. Let's encode our original string of names
 
 ```{r}
 library(stringr)
@@ -16,15 +20,15 @@ name
 
 3a. Reorder names that start with their last name.
 
-First, identify the names that have their last name first.
+First, identify the names that have their last name first. That is, Mr. Burns and Homer Simpson, the second and fifth entries.
 ```{r}
 lastfirst <- str_detect(name,",")
 lastfirst
 ```
 
-Split names separated by a comma into two vectors
+Split those names separated by a comma into two vectors, trim, and reverse order.
 ```{r}
-splitname <- str_split(name, ",")
+splitname <- sapply(sapply(str_split(name, ","), str_trim),rev)
 splitname
 ```
 
@@ -32,13 +36,12 @@ Then reverse the vector order, paste the vectors together with a space in betwee
 ```{r}
 
 for (i in 1:length(name)) {
-  if (lastfirst[i]) { 
-  splitname[i]<- str_trim(paste(rev(unlist(splitname[i])), collapse = " "))
-  }
+  splitname[i]<- paste(unlist(splitname[i]), collapse = " ")
 }
 
 splitname <- unlist(splitname)
 splitname
+
 ```
 
 3b. Identify if the names in the vectors have a title - I use the rule "if a name starts with two or more letters followed by a period, it has a title"
@@ -92,9 +95,5 @@ code <- c("clcopCow1zmstc0d87wnkig7OvdicpNuggvhryn92Gjuwczi8hqrfpRxs5Aj5dwpn0Tan
 code <- str_replace_all(code, "e", "*")
 alphanum <- c(LETTERS, letters, 0:9,"\\.","\\!")
 #str_replace_all(code, alphanum[which.max(charcount)], "e")
-
-```
-
-```{r}
 
 ```
