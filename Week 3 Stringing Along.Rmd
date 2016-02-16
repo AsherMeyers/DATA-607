@@ -5,10 +5,6 @@ date: "February 13, 2016"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
 3. Let's encode our original string of names
 
 ```{r}
@@ -20,11 +16,6 @@ name
 
 3a. Reorder names that start with their last name.
 
-First, identify the names that have their last name first. That is, Mr. Burns and Homer Simpson, the second and fifth entries.
-```{r}
-lastfirst <- str_detect(name,",")
-lastfirst
-```
 
 Split those names separated by a comma into two vectors, trim, and reverse order.
 ```{r}
@@ -39,6 +30,18 @@ for (i in 1:length(name)) {
   splitname[i]<- paste(unlist(splitname[i]), collapse = " ")
 }
 
+splitname <- unlist(splitname)
+splitname
+
+```
+
+The code summed together:
+
+```{r}
+splitname <- sapply(sapply(str_split(name, ","), str_trim),rev)
+for (i in 1:length(name)) {
+  splitname[i]<- paste(unlist(splitname[i]), collapse = " ")
+}
 splitname <- unlist(splitname)
 splitname
 
@@ -79,7 +82,7 @@ binomialstring <- c("(5-3)^2=5^2-2*5*3+3^2 conforms to the binomial theorem")
 str_extract(binomialstring, "[^0-9=+*()]+")
 ```
 
-This doesn't work, because the caret and the hyphen are metacharacters that need to be preceded by a double slash, to indicate that those characters are being referenced specifically.
+This doesn't work, because the caret and the hyphen are metacharacters that need to be preceded by a double slash (i.e. \\ ), to indicate that those characters are being referenced specifically.
 
 ```{r}
 str_extract(binomialstring, "[\\^\\-0-9=+*()]+")
