@@ -3,6 +3,7 @@ title: "Regular Expressions"
 author: "Asher Meyers"
 date: "February 13, 2016"
 output: html_document
+RPubs: http://rpubs.com/ashernm/Week4_Strings
 ---
 
 3. Let's encode our original string of names
