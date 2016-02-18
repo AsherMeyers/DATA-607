@@ -5,13 +5,16 @@ date: "February 16, 2016"
 output: html_document
 ---
 
+Load in the stringr library and the dataset TournamentInfo
 ```{r}
+library(stringr)
 TournamentInfo <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/tournamentinfo.txt"), sep = "|", stringsAsFactors=FALSE)
 TournamentInfo <- TournamentInfo[seq(-2,-194,-3),]
 View(TournamentInfo)
-library(stringr)
 ```
 
+
+Separate the TournamentInfo table into two tables comprised only of each kind of row.
 ```{r}
 NameRows <- TournamentInfo[seq(2,2*194/3,2),]
 View(NameRows)
@@ -22,23 +25,25 @@ View(NoNameRows)
 Pre-Rating Location
 ```{r}
 PreRatingLoc <- c(str_locate(NoNameRows[,2],"R: ")[1,2]+1, str_locate(NoNameRows[,2], "R: ")[1,2]+4)
-PreRatings <- str_sub(NoNameRows[,2],PreRatingLoc[1],PreRatingLoc[2])
+PreRatings <- as.integer(str_sub(NoNameRows[,2],PreRatingLoc[1],PreRatingLoc[2]))
 ```
 
 Write a table with Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre-Chess Rating of Opponent
 ```{r}
 ChessTable <- data.frame(sapply(NameRows[2],str_trim),NoNameRows[1],NameRows[3], PreRatings)
-ChessTable
+View(ChessTable)
 ```
 
 
-
+Rating of first player's oppponents
 ```{r}
-
+Opponents <- data.frame(as.list(str_extract(NameRows[1:64, 4:9],"[0-9]{1,2}")))
 ```
 
 ```{r}
-
+for (i in lengths(NameRows)[1]) {
+  Opponents[i] <- data.frame(as.list(c(i, str_extract(NameRows[i,4:9],"[0-9]{1,2}"))))
+}
 ```
 
 ```{r}
