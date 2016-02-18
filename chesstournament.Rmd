@@ -5,26 +5,33 @@ date: "February 16, 2016"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
 ```{r}
-TournamentInfo <- read.table(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/tournamentinfo.txt"),sep = "|")
-as.string(TournamentInfo)
+TournamentInfo <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/tournamentinfo.txt"), sep = "|", stringsAsFactors=FALSE)
+TournamentInfo <- TournamentInfo[seq(-2,-194,-3),]
+View(TournamentInfo)
+library(stringr)
 ```
 
 ```{r}
-
+NameRows <- TournamentInfo[seq(2,2*194/3,2),]
+View(NameRows)
+NoNameRows <- TournamentInfo[seq(3,2*194/3,2),]
+View(NoNameRows)
 ```
 
+Pre-Rating Location
 ```{r}
-
+PreRatingLoc <- c(str_locate(NoNameRows[,2],"R: ")[1,2]+1, str_locate(NoNameRows[,2], "R: ")[1,2]+4)
+PreRatings <- str_sub(NoNameRows[,2],PreRatingLoc[1],PreRatingLoc[2])
 ```
 
+Write a table with Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre-Chess Rating of Opponent
 ```{r}
-
+ChessTable <- data.frame(sapply(NameRows[2],str_trim),NoNameRows[1],NameRows[3], PreRatings)
+ChessTable
 ```
+
+
 
 ```{r}
 
