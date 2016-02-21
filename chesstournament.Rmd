@@ -46,7 +46,7 @@ for (i in 2:64) {
 View(Opponents)
 ```
 
-Convert the listing of opponents to a listing of each player's opponent's ratings, along with a column for the the number of rounds not played (i.e. column NullCount), and an average rating; for the average, the denominator is the number of games played, which ranges from 3 to 6.
+Create a listing of each player's opponent's ratings, along with a column for the the number of rounds not played (i.e. column NullCount), and an average rating; for the average, the denominator is the number of games played, which ranges from 3 to 6.
 
 ```{r}
 OppRatings <- data.frame(c(1:64),ChessTable$PreRating[Opponents$Opp1[1:64]],
