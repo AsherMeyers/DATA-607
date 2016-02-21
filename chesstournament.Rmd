@@ -51,7 +51,7 @@ for (i in 2:64) {
 View(Opponents)
 ```
 
-Create a listing of each player's opponent's ratings, along with a column for the the number of rounds not played (i.e. column NullCount), and an average rating; for the average, the denominator is the number of games played, which ranges from 3 to 6.
+Create a listing of each player's opponent's ratings, along with a column for the the number of rounds not played (i.e. column NullCount), and an average rating; for the average, the denominator is the number of games played, which ranges from 2 to 7.
 
 ```{r}
 OppRatings <- data.frame(c(1:64),ChessTable$PreRating[Opponents$Opp1[1:64]],
@@ -63,8 +63,8 @@ OppRatings <- data.frame(c(1:64),ChessTable$PreRating[Opponents$Opp1[1:64]],
                          ChessTable$PreRating[Opponents$Opp7[1:64]])
 colnames(OppRatings) <- c("Player","Opp1R","Opp2R","Opp3R","Opp4R","Opp5R","Opp6R","Opp7R")
 for (i in 1:64) {
-  OppRatings$GamesPlayed[i] <- 7 - sum(is.na(OppRatings[i,2:7]))
-  OppRatings$Average[i] <- round(sum(OppRatings[i,2:8]/OppRatings$GamesPlayed[i], na.rm = TRUE),0)
+  OppRatings$RoundsPlayed[i] <- 7 - sum(is.na(OppRatings[i,2:7]))
+  OppRatings$Average[i] <- round(sum(OppRatings[i,2:8]/OppRatings$RoundsPlayed[i], na.rm = TRUE),0)
 }
 View(OppRatings)
 ```
