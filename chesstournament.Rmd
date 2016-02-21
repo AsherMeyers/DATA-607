@@ -50,7 +50,7 @@ Opponent's Ratings Table
 
 ```{r}
 OppRatings <- data.frame(c(1:64),ChessTable$PreRating[Opponents$Opp1[1:64]],ChessTable$PreRating[Opponents$Opp2[1:64]],ChessTable$PreRating[Opponents$Opp3[1:64]],ChessTable$PreRating[Opponents$Opp4[1:64]],ChessTable$PreRating[Opponents$Opp5[1:64]],ChessTable$PreRating[Opponents$Opp6[1:64]])
-
+colnames(OppRatings) <- c("Player","Opp1R","Opp2R","Opp3R","Opp4R","Opp5R","Opp6R")
 View(OppRatings)
 ```
 
