@@ -58,6 +58,7 @@ for (i in 1:64) {
 View(OppRatings)
 ```
 
+Now we have all the desired components of our table. 
 
 ```{r}
 ChessTable <- data.frame(c(1:64), sapply(NameRows[2],str_trim),NoNameRows[1],NameRows[3], PreRatings, OppRatings$Average)
