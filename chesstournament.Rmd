@@ -22,7 +22,7 @@ NoNameRows <- TournamentInfo[seq(3,2*194/3,2),]
 View(NoNameRows)
 ```
 
-Pre-Rating Location
+Pre-Rating Location: Identify the start and end positions of the player's rating in a string, and then identify the content of that substring and save it as the player's pre-tournament rating.
 ```{r}
 PreRatingLoc <- c(str_locate(NoNameRows[,2],"R: ")[1,2]+1, str_locate(NoNameRows[,2], "R: ")[1,2]+4)
 PreRatings <- as.integer(str_sub(NoNameRows[,2],PreRatingLoc[1],PreRatingLoc[2]))
@@ -46,22 +46,22 @@ for (i in 2:64) {
 View(Opponents)
 ```
 
-Opponent's Ratings Table
+Convert the listing of opponents to a listing of each player's opponent's ratings, along with a column for the the number of rounds not played (i.e. column NullCount), and an average rating; for the average, the denominator is the number of games played, which ranges from 3 to 6.
 
 ```{r}
 OppRatings <- data.frame(c(1:64),ChessTable$PreRating[Opponents$Opp1[1:64]],ChessTable$PreRating[Opponents$Opp2[1:64]],ChessTable$PreRating[Opponents$Opp3[1:64]],ChessTable$PreRating[Opponents$Opp4[1:64]],ChessTable$PreRating[Opponents$Opp5[1:64]],ChessTable$PreRating[Opponents$Opp6[1:64]])
 colnames(OppRatings) <- c("Player","Opp1R","Opp2R","Opp3R","Opp4R","Opp5R","Opp6R")
-OppRatings$NullCount <- 0*seq(1:64)
 for (i in 1:64) {
-  OppRatings$NullCount[i] <- sum(is.na(OppRatings[i,2:7]))
-  OppRatings$Average[i] <- round(sum(OppRatings[i,2:7]/(6-OppRatings$NullCount[i]), na.rm = TRUE),0)
+  OppRatings$GamesPlayed[i] <- 6 - sum(is.na(OppRatings[i,2:7]))
+  OppRatings$Average[i] <- round(sum(OppRatings[i,2:7]/OppRatings$GamesPlayed[i], na.rm = TRUE),0)
 }
 View(OppRatings)
 ```
 
 
 ```{r}
-ChessTable$OpponentAverage <- OppRatings$Average
+ChessTable <- data.frame(c(1:64), sapply(NameRows[2],str_trim),NoNameRows[1],NameRows[3], PreRatings, OppRatings$Average)
+colnames(ChessTable) <- c("Number", "Name", "State", "Points", "PreRating","OpponentAverage")
 View(ChessTable)
+ChessTable
 ```
-
