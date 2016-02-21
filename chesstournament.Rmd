@@ -51,10 +51,17 @@ Opponent's Ratings Table
 ```{r}
 OppRatings <- data.frame(c(1:64),ChessTable$PreRating[Opponents$Opp1[1:64]],ChessTable$PreRating[Opponents$Opp2[1:64]],ChessTable$PreRating[Opponents$Opp3[1:64]],ChessTable$PreRating[Opponents$Opp4[1:64]],ChessTable$PreRating[Opponents$Opp5[1:64]],ChessTable$PreRating[Opponents$Opp6[1:64]])
 colnames(OppRatings) <- c("Player","Opp1R","Opp2R","Opp3R","Opp4R","Opp5R","Opp6R")
+OppRatings$NullCount <- 0*seq(1:64)
+for (i in 1:64) {
+  OppRatings$NullCount[i] <- sum(is.na(OppRatings[i,2:7]))
+  OppRatings$Average[i] <- round(sum(OppRatings[i,2:7]/(6-OppRatings$NullCount[i]), na.rm = TRUE),0)
+}
 View(OppRatings)
 ```
 
 
 ```{r}
-
+ChessTable$OpponentAverage <- OppRatings$Average
+View(ChessTable)
 ```
+
