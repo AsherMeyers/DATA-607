@@ -50,6 +50,7 @@ Opponent's Ratings Table
 
 ```{r}
 OppRatings <- data.frame(c(1:64),)
+ChessTable$PreRating[Opponents$Opp1[1:64]]
 ```
 
 
