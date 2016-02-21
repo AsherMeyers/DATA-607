@@ -8,10 +8,13 @@ output: html_document
 Load in the stringr library and the dataset TournamentInfo
 ```{r}
 library(stringr)
-TournamentInfo <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/tournamentinfo.txt"), sep = "|", stringsAsFactors=FALSE)
+TournamentInfo <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/tournamentinfo.txt"),
+                           sep = "|", stringsAsFactors=FALSE,
+                           col.names = c("Pair", "Name", "Total", "R1", "R2", "R3", "R4", "R5", "R6", "R7", ""), 
+                           skip = 1)
+
 TournamentInfo <- TournamentInfo[seq(-2,-194,-3),]
-colnames(TournamentInfo) <- c("Pair", "Name", "Total", "R1", "R2", "R3", "R4", "R5", "R6", "R7")
-)
+TournamentInfo
 View(TournamentInfo)
 ```
 
@@ -74,3 +77,4 @@ colnames(ChessTable) <- c("Number", "Name", "State", "Points", "PreRating","Oppo
 View(ChessTable)
 ChessTable
 ```
+
