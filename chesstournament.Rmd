@@ -19,23 +19,20 @@ View(TournamentInfo)
 ```
 
 
-Separate the TournamentInfo table into two tables comprised only of each kind of row.
+Reorganize the TournamentInfo table so that each player's info falls only on a single line.
 ```{r}
-NameRows <- TournamentInfo[seq(2,2*194/3,2),]
-View(NameRows)
-NoNameRows <- TournamentInfo[seq(3,2*194/3,2),]
-View(NoNameRows)
+JoinedRows <- data.frame(TournamentInfo[seq(2,2*194/3,2),],TournamentInfo[seq(3,2*194/3,2),])
 ```
 
 Pre-Rating Location: Identify the start and end positions of the player's rating in a string, and then identify the content of that substring and save it as the player's pre-tournament rating.
 ```{r}
-PreRatingLoc <- c(str_locate(NoNameRows[,2],"R: ")[1,2]+1, str_locate(NoNameRows[,2], "R: ")[1,2]+4)
-PreRatings <- as.integer(str_sub(NoNameRows[,2],PreRatingLoc[1],PreRatingLoc[2]))
+PreRatingLoc <- c(str_locate(JoinedRows[,13],"R: ")[1,2]+1, str_locate(JoinedRows[,13], "R: ")[1,2]+4)
+PreRatings <- as.integer(str_sub(JoinedRows[,13],PreRatingLoc[1],PreRatingLoc[2]))
 ```
 
 Write a table with Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre-Chess Rating of Opponent
 ```{r}
-ChessTable <- data.frame(c(1:64), sapply(NameRows[2],str_trim),NoNameRows[1],NameRows[3], PreRatings)
+ChessTable <- data.frame(c(1:64), sapply(JoinedRows[2],str_trim),JoinedRows[12],JoinedRows[3], PreRatings)
 colnames(ChessTable) <- c("Number", "Name", "State", "Points", "PreRating")
 View(ChessTable)
 ```
@@ -43,10 +40,10 @@ View(ChessTable)
 
 Listing of each player's opponents
 ```{r}
-Opponents <- data.frame(1, as.list(as.numeric(str_extract(NameRows[1,4:10],"[0-9]{1,2}"))))
+Opponents <- data.frame(1, as.list(as.numeric(str_extract(JoinedRows[1,4:10],"[0-9]{1,2}"))))
 colnames(Opponents) <- c("Number", "Opp1","Opp2","Opp3","Opp4","Opp5","Opp6","Opp7")
 for (i in 2:64) {
-  Opponents <- rbind(Opponents, c(i, as.numeric(str_extract(NameRows[i,4:10],"[0-9]{1,2}"))))
+  Opponents <- rbind(Opponents, c(i, as.numeric(str_extract(JoinedRows[i,4:10],"[0-9]{1,2}"))))
 }
 View(Opponents)
 ```
@@ -69,7 +66,7 @@ View(OppRatings)
 Now we have all the desired components of our table. 
 
 ```{r}
-ChessTable <- data.frame(c(1:64), sapply(NameRows[2],str_trim),NoNameRows[1],NameRows[3], PreRatings, OppRatings$Average)
+ChessTable <- data.frame(c(1:64), sapply(JoinedRows[2],str_trim),JoinedRows[12],JoinedRows[3], PreRatings, OppRatings$Average)
 colnames(ChessTable) <- c("Number", "Name", "State", "Points", "PreRating","OpponentAverage")
 View(ChessTable)
 ChessTable
