@@ -1,33 +1,40 @@
 ---
 title: "Chess Tournament"
-author: "Asher Meyers"
+author: "Asher Meyers and Chris Martin"
 date: "February 16, 2016"
 output: html_document
 ---
 
+If the package aod is not already installed, you must install it:
+
+> install.packages("aod")
+
 Load in the stringr library and the dataset TournamentInfo
 ```{r}
 library(stringr)
+library(knitr)
 TournamentInfo <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/tournamentinfo.txt"),
                            sep = "|", stringsAsFactors=FALSE,
                            col.names = c("Pair", "Name", "Total", "R1", "R2", "R3", "R4", "R5", "R6", "R7", ""), 
                            skip = 1)
 
 TournamentInfo <- TournamentInfo[seq(-2,-194,-3),]
-TournamentInfo
-View(TournamentInfo)
+kable(head(TournamentInfo))
 ```
 
 
 Reorganize the TournamentInfo table so that each player's info falls only on a single line.
 ```{r}
 JoinedRows <- data.frame(TournamentInfo[seq(2,2*194/3,2),],TournamentInfo[seq(3,2*194/3,2),])
+kable(head(JoinedRows))
 ```
 
 Pre-Rating Location: Identify the start and end positions of the player's rating in a string, and then identify the content of that substring and save it as the player's pre-tournament rating.
 ```{r}
 PreRatingLoc <- c(str_locate(JoinedRows[,13],"R: ")[1,2]+1, str_locate(JoinedRows[,13], "R: ")[1,2]+4)
 PreRatings <- as.integer(str_sub(JoinedRows[,13],PreRatingLoc[1],PreRatingLoc[2]))
+
+kable(head(PreRatings))
 ```
 
 Listing of each player's opponents
@@ -37,22 +44,22 @@ colnames(Opponents) <- c("Number", "Opp1","Opp2","Opp3","Opp4","Opp5","Opp6","Op
 for (i in 2:64) {
   Opponents <- rbind(Opponents, c(i, as.numeric(str_extract(JoinedRows[i,4:10],"[0-9]{1,2}"))))
 }
-View(Opponents)
+kable(head(Opponents))
 ```
 
 Create a listing of each player's opponent's ratings, along with a column for the the number of rounds not played (i.e. column NullCount), and an average rating; for the average, the denominator is the number of games played, which ranges from 2 to 7.
 
 ```{r}
-OppRatings <- data.frame(c(1:64),PreRatings[Opponents$Opp1[1:64]],
+OppRatings <- data.frame(c(1:64), PreRatings, PreRatings[Opponents$Opp1[1:64]],
                          PreRatings[Opponents$Opp2[1:64]],
                          PreRatings[Opponents$Opp3[1:64]],
                          PreRatings[Opponents$Opp4[1:64]],
                          PreRatings[Opponents$Opp5[1:64]],
                          PreRatings[Opponents$Opp6[1:64]],
                          PreRatings[Opponents$Opp7[1:64]])
-colnames(OppRatings) <- c("Player","Opp1R","Opp2R","Opp3R","Opp4R","Opp5R","Opp6R","Opp7R")
-OppRatings$Average <- round(rowMeans(OppRatings[2:8],na.rm=TRUE), digits=0)
-View(OppRatings)
+colnames(OppRatings) <- c("Player","PlayerRating", "Opp1R","Opp2R","Opp3R","Opp4R","Opp5R","Opp6R","Opp7R")
+OppRatings$Average <- round(rowMeans(OppRatings[3:9],na.rm=TRUE), digits=0)
+kable(head(OppRatings))
 ```
 
 Now we have all the desired components of our table. Write a table with Player’s Name, Player’s State, Total Number of Points, Player’s Pre-Rating, and Average Pre-Chess Rating of Opponent
@@ -60,6 +67,86 @@ Now we have all the desired components of our table. Write a table with Player�
 ```{r}
 ChessTable <- data.frame(c(1:64), sapply(JoinedRows[2],str_trim),JoinedRows[12],JoinedRows[3], PreRatings, OppRatings$Average)
 colnames(ChessTable) <- c("Number", "Name", "State", "Points", "PreRating","OpponentAverage")
-View(ChessTable)
+kable(head(ChessTable))
 ```
 
+
+First, we'll compile the difference in ratings for each game, along with the outcome, in an easy to read table.
+```{r}
+DiffRatings <- data.frame(c(1:64), OppRatings$PlayerRating-OppRatings$Opp1R,
+                                   OppRatings$PlayerRating-OppRatings$Opp2R, 
+                                   OppRatings$PlayerRating-OppRatings$Opp3R, 
+                                   OppRatings$PlayerRating-OppRatings$Opp4R, 
+                                   OppRatings$PlayerRating-OppRatings$Opp5R, 
+                                   OppRatings$PlayerRating-OppRatings$Opp6R, 
+                                   OppRatings$PlayerRating-OppRatings$Opp7R,
+                                   str_sub(JoinedRows$R1, 1, 1),
+                                   str_sub(JoinedRows$R2, 1, 1),
+                                   str_sub(JoinedRows$R3, 1, 1),
+                                   str_sub(JoinedRows$R4, 1, 1),
+                                   str_sub(JoinedRows$R5, 1, 1),
+                                   str_sub(JoinedRows$R6, 1, 1),
+                                   str_sub(JoinedRows$R7, 1, 1), stringsAsFactors=FALSE)
+colnames(DiffRatings) <- c("Player", "Opp1", "Opp2", "Opp3", "Opp4", "Opp5", "Opp6", "Opp7", "Score1", "Score2", "Score3", "Score4", "Score5","Score6", "Score7")
+
+DiffRatings[DiffRatings == "W"] <- 1
+DiffRatings[DiffRatings == "D"] <- NA_integer_
+DiffRatings[DiffRatings == "L"] <- -1
+DiffRatings[DiffRatings == "H"] <- NA_integer_
+DiffRatings[DiffRatings == "U"] <- NA_integer_
+DiffRatings[DiffRatings == "X"] <- NA_integer_
+DiffRatings[DiffRatings == "B"] <- NA_integer_
+kable(head(DiffRatings))
+
+
+```
+
+Now, let's reformat the table into a format that's easier to analyze.
+```{r}
+DiffRatingsData <- data.frame(rep.int(1:64,7), 
+                              c(DiffRatings$Opp1, DiffRatings$Opp2, DiffRatings$Opp3, DiffRatings$Opp4,
+                                DiffRatings$Opp5, DiffRatings$Opp6, DiffRatings$Opp7),
+                              c(DiffRatings$Score1, DiffRatings$Score2, DiffRatings$Score3, DiffRatings$Score4,                                         DiffRatings$Score5, DiffRatings$Score6, DiffRatings$Score7))
+DiffRatingsData <- na.omit(DiffRatingsData)
+colnames(DiffRatingsData) <- c("Player", "ScoreDifference", "Outcome")
+kable(head(DiffRatingsData))
+```
+
+Now we'll do our logistic regression
+```{r}
+
+library(ggplot2)
+library(Rcpp)
+
+DiffRatingsData$Outcome <- factor(DiffRatingsData$Outcome)
+LogitRatings <- glm(Outcome ~ ScoreDifference, data = DiffRatingsData, family = "binomial")
+summary(LogitRatings)
+LogitRatings
+```
+
+We get a value of 3.204e-03 for the intercept, and zero (more or less) for the intercept. To calculate the odds ratios and probabilities of winning, given a range of score differences, from 300 less than one's opponent to 300 more:
+
+```{r}
+Diffs <- seq(-300, 300, 100)
+Odds <- exp(Diffs*3.204e-03)
+WinProb <- data.frame(Diffs, Odds, (Odds/ (Odds+1)))
+colnames(WinProb) <- c("Score Difference","Odds Ratio","Probability of Victory")
+kable(head(WinProb))
+                      
+```
+
+Now let's plot out a graph of the probabilities:
+
+```{r}
+Diffs <- seq(min(DiffRatingsData$ScoreDifference), max(DiffRatingsData$ScoreDifference), 1)
+Odds <- exp(Diffs*3.204e-03)
+WinProb <- Odds/ (Odds + 1)
+plot(Diffs, WinProb, xlab = "Player Rating Difference", ylab = "Probability of Victory", main = "The Probability of Winning as a Function of a Player's Rating Premium", col = "brown", cex = 0.5, axes = FALSE)
+axis(1, at = seq(-1250, 1250, 250), pos = 0, las = 0)
+axis(2, at = seq(0, 1, 0.25))
+                      
+```
+
+Of course, in the interest of full disclosure, there are two flaws with my procedure: I've excluded the games that ended in a draw, and I've double-counted each game that didn't end in a draw. The latter does not affect the probability calculations, but it could have been avoided perhaps by randomly choosing from which perspective to score a game (ie each game is a 1 from the winning player's perspective and a 0 from the loser's perspective.)
+
+As we'd expect, when players are evenly matched, the probability of winning is 50%, aka fifty-fifty.
