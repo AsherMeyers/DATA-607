@@ -1,0 +1,42 @@
+---
+title: "Week 5 Lab"
+author: "Asher Meyers"
+date: "March 2, 2016"
+output: html_document
+---
+
+
+```{r}
+library("ggplot2")
+library("plyr")
+```
+
+2. Summary statistics of diamonds
+
+```{r}
+summary(diamonds)
+
+```
+
+3. Frequency of diamond colors
+```{r}
+
+count(diamonds$color)
+```
+
+4. Determine the frequency for each of the diamond cuts, by color
+```{r}
+count(diamonds, c('color','cut'))
+```
+
+5. Create a graph for a single numeric variable
+```{r}
+
+plot(diamonds$color)
+```
+
+6. Create a scatterplot of two numeric variables.
+```{r}
+plot(diamonds$price ~ diamonds$carat)
+
+```
