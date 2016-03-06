@@ -1,1 +1,44 @@
+---
+title: "Week 6 Assignment"
+author: "Asher Meyers"
+date: "March 5, 2016"
+output: html_document
+---
 
+First, let's install tidyr and load its library, as well as knitr.
+> install.packages("tidyr")
+
+```{r}
+library(knitr)
+library(tidyr)
+```
+
+Let's load the data
+
+```{r}
+untidy <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Week6CSV.csv"), stringsAsFactors = FALSE)
+names(untidy) <- c("Airline", "Status", "LA", "Phoenix", "SD", "SF", "Seattle")
+View(untidy)
+```
+
+Let's remove the third, blank row and then transpose the data so it's easier to work with.
+```{r}
+tuntidy <- t(untidy[-3,])
+kable(tuntidy)
+```
+
+
+Let's separate the dataframe into two dataframes, one for each airline.
+```{r}
+Alaska <- data.frame(tuntidy[c(-1:-2),1:2])
+names(Alaska) <- c("OnTime", "Delayed")
+West <- data.frame(tuntidy[-1:-2,3:4])
+names(West) <- c("OnTime", "Delayed")
+View(Alaska)
+View(West)
+```
+
+
+```{r}
+
+```
