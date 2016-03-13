@@ -10,11 +10,11 @@ This project was done in consultation with Chris Martin, who partnered with me o
 First, we'll import the libraries required.
 
 ```{r}
+library("plyr")
 library("knitr")
 library("stringr")
 library("tidyr")
 library("dplyr")
-library("plyr")
 ```
 
 For our first example, we will use Chris Martin's auction data. He describes it here: https://bbhosted.cuny.edu/webapps/discussionboard/do/message?action=list_messages&forum_id=_1321839_1&nav=discussion_board&conf_id=_1299369_1&course_id=_1245245_1&message_id=_18955095_1#msg__18955095_1Id
