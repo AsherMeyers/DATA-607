@@ -1,60 +1,306 @@
 ---
-title: "Week 6 Assignment"
+title: "Project 2"
 author: "Asher Meyers"
-date: "March 5, 2016"
+date: "March 13, 2016"
 output: html_document
 ---
 
-First, let's install tidyr and load its library, as well as knitr.
-> install.packages("tidyr")
+This project was done in consultation with Chris Martin, who partnered with me on the first project. I will be using the same library and cases as him, but I will do my coding independently.
+
+First, we'll import the libraries required.
 
 ```{r}
-library(knitr)
-library(tidyr)
+library("plyr")
+library("knitr")
+library("stringr")
+library("tidyr")
+library("dplyr")
 ```
 
-Let's load the data
+For our first example, we will use Chris Martin's auction data. He describes it here: https://bbhosted.cuny.edu/webapps/discussionboard/do/message?action=list_messages&forum_id=_1321839_1&nav=discussion_board&conf_id=_1299369_1&course_id=_1245245_1&message_id=_18955095_1#msg__18955095_1Id
+
+We are told we must find the % difference of an estimate and the sale price; there are two estimates, a high and a low estimate.
+
+The two % differences we must find are:
+
+1. (Price - High Estimate) / High Estimate
+
+2. (Price - Low Estimate) / Low Estimate
+
+Looking at the data here - https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Week6/Auction.csv - we see that columns are separated by commas, so we'll use that to splice up our data table. I've reproduced the data on my own Github.
+```{r}
+
+auction <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Week6/Auction.csv"), sep = ",", stringsAsFactors = FALSE)
+
+```
+
+We can use a regular expression to extract the low range values. The regular expression is simply - "take the first numeric string in the range field." For the first row, that means taking "300" from" "$300 - $400".
 
 ```{r}
-untidy <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Week6CSV.csv"), stringsAsFactors = FALSE)
-names(untidy) <- c("Airline", "Status", "LA", "Phoenix", "SD", "SF", "Seattle")
-kable(untidy)
-```
 
-Let's remove the third, blank row and then transpose the data so it's easier to work with.
-```{r}
-tuntidy <- t(untidy[-3,])
-kable(tuntidy)
-View(tuntidy)
+auction$LowEst <- as.numeric(str_extract(auction[,3],"[:digit:]+"))
+
 ```
 
 
-Let's separate the dataframe into two dataframes, one for each airline.
-```{r}
-cities <- c("LA", "Phoenix", "SD", "SF", "Seattle")
-```
+Now let's do the same for the high end of the range. The extract function we used for the low end of the range won't work, because it starts from the left; using it again will give us the same result.
 
+Instead, we use the str_sub function to draw in a sub string; by entering a *negative* value, we extract the n rightmost values. Here, we use 5.
+
+Then we use the 'extract the first set of digits' command as we had with the low estimate.
 
 ```{r}
-Alaska <- data.frame(city = cities, airline = tuntidy[1,1], ontime = as.integer(tuntidy[3:7,1]), delayed = as.integer(tuntidy[3:7,2]), stringsAsFactors = FALSE)
-Alaska$total <- rowSums(subset(Alaska, select=3:4))
-Alaska <- transform(Alaska, AlaskaDelayed = delayed / total)
-View(Alaska)
+auction$HighEst <- as.numeric(str_extract(str_sub(auction[,3], -5), "[:digit:]+"))
 ```
+
+Now let's take a look at our auction data
 
 ```{r}
-West <- data.frame(city = cities, airline = tuntidy[1,3], ontime = as.integer(tuntidy[3:7,3]), delayed = as.integer(tuntidy[3:7,4]), stringsAsFactors = FALSE)
-West$total <- rowSums(subset(West, select=3:4))
-West <- transform(West, WestDelayed = delayed / total)
-View(West)
+kable(auction)
+kable(auction)
 ```
 
-Now let's combine and compare how often each airline is delayed:
+The $ signs in our price column may complicate computations later, so let's remove them.
 ```{r}
-DelayComparison <- data.frame(city = cities,  AlaskaDelayed = Alaska$ProportionDelayed, WestDelayed = West$ProportionDelayed)
-DelayComparison <- transform(DelayComparison, DelayPercentDiff = AlaskaDelayed - WestDelayed)
-View(DelayComparison)
-kable(DelayComparison)
+auction$Price <- as.numeric(str_replace_all(auction[,4], "\\$",""))
 ```
 
-We see that Alaska Airlines is uniformly less prone to delay than American West Airlines.
+Now, let's do our computations for the low and high estimates
+```{r}
+auction$LowEstDiff <- str_c(round(100*(auction$LowEst - auction$Price)/auction$Price,0),"%")
+auction$HighEstDiff <- str_c(round(100*(auction$HighEst - auction$Price)/auction$Price,0),"%")
+kable(auction)
+```
+
+In sum, we've identified the percent difference between the estimates and the actual selling price.
+
+**********************
+
+Case 2: Oil
+
+Kishore Prasad uploaded a fictional dataset
+
+```{r}
+Oil <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Week6/Oil.csv"), sep = ",", stringsAsFactors = FALSE)
+
+kable(Oil)
+```
+
+First, let's separate the table into two tables, one for Engine Oil and one for Gearbox Oil. Engine Oil is on odd numbered rows, while Gearbox is on even numbered rows. The table for Gearbox Oil is missing its months, so we'll add them in
+
+```{r}
+EngRows <- seq(1, length(Oil[,1]),2)
+GearRows <- seq(2, length(Oil[,1]),2)
+
+EngineOil <- Oil[EngRows,1:2]
+GearboxOil <- Oil[GearRows,1:2]
+GearboxOil$Month <- EngineOil$Month
+kable(EngineOil)
+kable(GearboxOil)
+```
+
+
+Now, we want to split up each column for each brand, into bought and consumed quantities. We'll use the convention of the brand name followed by a P for purchased and C for consumed. So we'll have CaltexP, CaltexC, GulfP, GulfC, MobilP, MobilC.
+
+We'll extract the purchased portion by simply using a regular expression to extract the first string of digits. To get the consumed portion, we'll read in the last five characters of that string, and then extract the digits from that.
+
+Since these are strings by default, we'll have to cast them all to numerics.
+
+```{r}
+#For Engine Oil
+
+EngineOil$CaltexP <- as.numeric(str_extract(Oil$Caltex[EngRows],"[:digit:]+"))
+EngineOil$CaltexC <- as.numeric(str_extract(str_sub(Oil$Caltex[EngRows], -5),"[:digit:]+"))
+
+EngineOil$MobilP <- as.numeric(str_extract(Oil$Mobil[EngRows],"[:digit:]+"))
+EngineOil$MobilC <- as.numeric(str_extract(str_sub(Oil$Mobil[EngRows], -5),"[:digit:]+"))
+
+EngineOil$GulfP <- as.numeric(str_extract(Oil$Gulf[EngRows],"[:digit:]+"))
+EngineOil$GulfC <- as.numeric(str_extract(str_sub(Oil$Gulf[EngRows], -5),"[:digit:]+"))
+
+kable(EngineOil)
+
+#For Gearbox Oil
+
+GearboxOil$CaltexP <- as.numeric(str_extract(Oil$Caltex[GearRows],"[:digit:]+"))
+GearboxOil$CaltexC <- as.numeric(str_extract(str_sub(Oil$Caltex[GearRows], -5),"[:digit:]+"))
+
+GearboxOil$MobilP <- as.numeric(str_extract(Oil$Mobil[GearRows],"[:digit:]+"))
+GearboxOil$MobilC <- as.numeric(str_extract(str_sub(Oil$Mobil[GearRows], -5),"[:digit:]+"))
+
+GearboxOil$GulfP <- as.numeric(str_extract(Oil$Gulf[GearRows],"[:digit:]+"))
+GearboxOil$GulfC <- as.numeric(str_extract(str_sub(Oil$Gulf[GearRows], -5),"[:digit:]+"))
+
+kable(GearboxOil)
+
+
+```
+
+Now, for our results.
+
+First, how much of each kind of oil is left, for each brand? 
+
+That's answered by the total purchased minus total consumed, for each brand and type of oil. We will have six answers.
+
+```{r}
+CaltexB <- c(EngineOil = sum(EngineOil$CaltexP) - sum(EngineOil$CaltexC), GearboxOil = sum(GearboxOil$CaltexP) - sum(GearboxOil$CaltexC))
+
+MobilB <- c(EngineOil = sum(EngineOil$MobilP) - sum(EngineOil$MobilC), GearboxOil = sum(GearboxOil$MobilP) - sum(GearboxOil$MobilC))
+  
+GulfB <- c(EngineOil = sum(EngineOil$GulfP) - sum(EngineOil$GulfC), GearboxOil = sum(GearboxOil$GulfP) - sum(GearboxOil$GulfC))
+
+OilBalance <- data.frame(CaltexB, MobilB, GulfB)
+
+kable(OilBalance)
+```
+
+Now let's identify the most consumed brands, for each engine type. First, we'll create a table of the consumption figures by brand and oil type. We'll refer to this as TC, as in Total Consumed.
+
+
+```{r}
+
+CaltexTC <- c(EngineOil = sum(EngineOil$CaltexC), GearboxOil = sum(GearboxOil$CaltexC), Total = sum(EngineOil$CaltexC) + sum(GearboxOil$CaltexC))
+
+MobilTC <- c(EngineOil = sum(EngineOil$MobilC), GearboxOil = sum(GearboxOil$MobilC), Total = sum(EngineOil$MobilC) + sum(GearboxOil$MobilC))
+
+
+GulfTC <- c(EngineOil = sum(EngineOil$GulfC), GearboxOil = sum(GearboxOil$GulfC), Total = sum(EngineOil$GulfC) + sum(GearboxOil$GulfC))
+
+OilTC <- data.frame(CaltexTC, MobilTC, GulfTC)
+
+kable(OilTC)
+
+```
+
+We see that Caltex sold the most overall, as well as the most Gearbox Oil, while Gulf sold the most Engine Oil. 
+
+
+Now for the third case: Dan Smilowitz's.
+
+Generators in the NYS electricity market are paid based on the outcome of competitive Unforced Capacity (UCAP) auctions.
+
+There are 3 auctions:
+•Monthly - takes place monthly before final values are known 
+•Spot - takes place monthly once values are finalized 
+•Strip - takes place twice a year (May and November) for the following six months 
+
+The prices for each auction are set in four different locations - NYC, Long Island (LI), Lower Hudson Valley (LHV), and Rest of State (ROS).
+
+The past ~12.5 years worth of auction results are contained in a table, as depicted below:
+
+All values are the price paid to generators in $/kW-month.  I've attached the data in a messy .csv here.
+
+Data source: New York Independent System Operator
+
+
+The Analysis
+
+Which month of the year sees the highest prices in each location?
+
+What is the average difference between NYC and ROS prices?
+
+Which calendar year saw the highest average price across regions (ignoring weighting)?
+
+Is the monthly auction or the spot auction more volatile (i.e. which has the most variability in pricing)?
+
+https://bbhosted.cuny.edu/webapps/discussionboard/do/message?action=list_messages&forum_id=_1321839_1&nav=discussion_board&conf_id=_1299369_1&course_id=_1245245_1&message_id=_19008069_1#msg__19008069_1Id
+
+
+Let's read in the data, and then consolidate the two header rows into one.
+```{r}
+generator <- read.csv(url("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Week6/Generator.csv"), sep = ",", stringsAsFactors =  FALSE, header = TRUE)
+
+colnames(generator) <- str_c(colnames(generator), generator[1,], sep = "")
+kable(head(generator))
+
+```
+
+
+Some of those header names are ugly, with a redundant period and number in them. Let's remove them.
+```{r}
+colnames(generator) <- str_replace_all(colnames(generator), "\\.[:digit:]","")
+colnames(generator) <- str_replace(colnames(generator), "AuctionLocation", "Month")
+generator <- generator[-1,]
+
+kable(head(generator))
+```
+
+Next, let's separate the date column into two columns, months and years; we'll also scrub the $ signs and cast the non-date contents to numerics.
+
+```{r}
+Year <- as.numeric(unlist(str_extract(generator[,1],"[:digit:]+")))
+
+generator$Month <- str_replace_all(generator$Month,"\\-[:digit:]+","")
+generator$Year <- Year
+generator <- generator[,c("Year", "Month",colnames(generator)[2:13])]
+pricecols <- length(colnames(generator))
+for (i in 3:pricecols) {
+  generator[,i] <- as.numeric(str_replace_all(generator[,i],"\\$",""))
+}
+kable(head(generator))
+```
+
+Now our dataset is clean and ready for analysis.
+
+
+For the first question:
+
+"Which month of the year sees the highest prices in each location?"
+
+We'll use the ddply function to compute averages for each monthly cost and location. Then we find the highest average for each location, which happens to be September for all locations.
+
+```{r}
+AvgByMonth <- ddply(generator,~Month,summarise,meanNYC=mean(MonthlyNYC, na.rm = TRUE), meanLHV = mean(MonthlyLHV, na.rm = TRUE), meanLI = mean(MonthlyLI, na.rm = TRUE), meanROS = mean(MonthlyROS, na.rm = TRUE))
+
+MaxMonth <- apply(AvgByMonth, 2, function(x) max(x, na.rm = TRUE))
+
+```
+
+Question 2: "What is the average difference between NYC and ROS prices?"
+
+For variety, we will now use the spot prices.
+
+```{r}
+NYC_ROS <- generator[ , c(1:2)]
+NYC_ROS$Diff <- generator$SpotNYC - generator$SpotROS
+kable(head(NYC_ROS))
+mean(NYC_ROS$Diff, na.rm = TRUE)
+```
+
+We get a value of a $6.67 difference in the spot price, between NYC and the rest of the state.
+
+************
+
+Question 3: Which calendar year saw the highest average price across regions (ignoring weighting)?
+
+First, let's compute an average across the regions. We'll use the monthly price now. And since our information for the first and last years, 03 and 16, are incomplete, we will exclude those years from our analysis.
+
+```{r}
+MaxYearNY <- generator[ , c(1:2)] 
+MaxYearNY$Mean <- rowMeans(generator[ , 3:6])
+MaxYearNY <- subset(MaxYearNY, (Year > 3) & (Year < 16))
+MaxYearNY$Year <- MaxYearNY$Year + 2000
+kable(head(MaxYearNY))
+```
+
+Now, we'll use the ddply function to group our monthly averages by year, and then the apply function to find the max within that.
+```{r}
+
+YearMeansNY <- ddply(MaxYearNY,~Year,summarise, meanYear = mean(Mean))
+
+MaxYearNY <- which.max(YearMeansNY$meanYear)
+YearMeansNY$Year[MaxYearNY]
+```
+
+2014 had the highest average across all of NY state (using an unweighted average).
+
+Question 4: Is the monthly auction or the spot auction more volatile (i.e. which has the most variability in pricing)?
+
+Let's compute the standard deviation for each column. First, we'll remove the last row because it has some null values
+
+```{r}
+generator1 <- generator[c(1:49, 51:149),1:10]
+apply(generator1, 2, function(x) sd(x))
+```
+
+We see that for each location, the spot has a higher SD than the monthly price. Therefore, the spot is more volatile - although the difference is generally small.
