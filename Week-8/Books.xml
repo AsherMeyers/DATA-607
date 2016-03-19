@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ASHERFAVBOOKS>
--<BOOK>
+<BOOK>
 <TITLE>The Bostonians</TITLE>
 <AUTHOR>Henry James</AUTHOR>
 <GENRE>Tragicomedy</GENRE>
@@ -9,11 +9,15 @@
 <YEAR>1886</YEAR>
 </BOOK>
 
--<BOOK>
+<BOOK>
 <TITLE>Hide your heart</TITLE>
 <AUTHOR>E.F. Schumacher</AUTHOR>
 <GENRE>Economics</GENRE>
-<COMPANY>Blond & Griggs</COMPANY>
+<COMPANY>
+ <![CDATA[
+ Blond & Griggs
+ ]]>
+ </COMPANY>
 <TYPE>Nonfiction</TYPE>
 <YEAR>1973</YEAR>
 </BOOK>
