@@ -18,13 +18,15 @@
 <YEAR>1973</YEAR>
 </BOOK>
 
--<BOOK>
-<TITLE>Greatest Hits</TITLE>
-<AUTHOR>Darrel Huff</AUTHOR>
-<ILLUSTRATOR>Irving Geis</ILLUSTRATOR>
-<GENRE>Statistics</GENRE>
-<COMPANY>W.W. Norton</COMPANY>
-<TYPE>Nonfiction</TYPE>
-<YEAR>1954</YEAR>
-</BOOK>
+ <BOOK>
+  <TITLE>Greatest Hits</TITLE>
+  <AUTHORS>
+    <WRITER>Darrel Huff</WRITER>
+    <ILLUSTRATOR>Irving Geis</ILLUSTRATOR>
+  </AUTHORS>
+  <GENRE>Statistics</GENRE>
+  <COMPANY>W.W. Norton</COMPANY>
+  <TYPE>Nonfiction</TYPE>
+  <YEAR>1954</YEAR>
+ </BOOK>
 </ASHERFAVBOOKS>
