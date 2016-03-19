@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+-<ASHERFAVBOOKS>
+-<BOOK>
+<TITLE>The Bostonians</TITLE>
+<AUTHOR>Henry James</AUTHOR>
+<GENRE>Tragicomedy</GENRE>
+<COMPANY>MacMillan</COMPANY>
+<TYPE>Fiction</TYPE>
+<YEAR>1886</YEAR>
+</BOOK>
+
+-<BOOK>
+<TITLE>Hide your heart</TITLE>
+<AUTHOR>E.F. Schumacher</AUTHOR>
+<GENRE>Economics</GENRE>
+<COMPANY>Blond & Griggs</COMPANY>
+<TYPE>Nonfiction</TYPE>
+<YEAR>1973</YEAR>
+</BOOK>
+
+-<BOOK>
+<TITLE>Greatest Hits</TITLE>
+<AUTHOR>Darrel Huff</AUTHOR>
+<ILLUSTRATOR>Irving Geis</ILLUSTRATOR>
+<GENRE>Statistics</GENRE>
+<COMPANY>W.W. Norton</COMPANY>
+<TYPE>Nonfiction</TYPE>
+<YEAR>1954</YEAR>
+</BOOK>
+</ASHERFAVBOOKS>
