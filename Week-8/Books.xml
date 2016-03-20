@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ASHERFAVBOOKS>
-	<BOOK ID = "1">
+
+	<BOOK ID="1">
 		<TITLE>The Bostonians</TITLE>
 		<AUTHOR>Henry James</AUTHOR>
 		<GENRE>Tragicomedy</GENRE>
@@ -8,8 +9,7 @@
 		<TYPE>Fiction</TYPE>
 		<YEAR>1886</YEAR>
 	</BOOK>
-
-	<BOOK ID = "2">
+	<BOOK ID="2">
 		<TITLE>Small is Beautiful</TITLE>
 		<AUTHOR>Ernst Fritz Schumacher</AUTHOR>
 		<GENRE>Economics</GENRE>
@@ -21,11 +21,9 @@
 		<TYPE>Nonfiction</TYPE>
 		<YEAR>1973</YEAR>
 	</BOOK>
-
-	<BOOK ID = "3">
+	<BOOK ID="3">
 	  <TITLE>Greatest Hits</TITLE>
-	  <AUTHOR writer = "Darrel Huff" illustrator = "Irving Geis">
-	  </AUTHORS>
+	  <AUTHOR writer = "Darrel Huff" illustrator = "Irving Geis"/>
 	  <GENRE>Statistics</GENRE>
 	  <COMPANY>W.W. Norton</COMPANY>
 	  <TYPE>Nonfiction</TYPE>
