@@ -24,9 +24,7 @@
 
 	<BOOK ID = "3">
 	  <TITLE>Greatest Hits</TITLE>
-	  <AUTHORS>
-		<WRITER>Darrel Huff</WRITER>
-		<ILLUSTRATOR>Irving Geis</ILLUSTRATOR>
+	  <AUTHOR writer = "Darrel Huff" illustrator = "Irving Geis">
 	  </AUTHORS>
 	  <GENRE>Statistics</GENRE>
 	  <COMPANY>W.W. Norton</COMPANY>
