@@ -1,0 +1,75 @@
+---
+title: "FavoriteBooks"
+author: "Asher Meyers"
+date: "March 19, 2016"
+output: html_document
+---
+
+First, we will load the packages required to complete the assignment, XML and RJSONIO
+
+```{r}
+library("XML")
+library("RCurl")
+library("plyr")
+library("RJSONIO")
+library("knitr")
+```
+
+On my Github, I have handwritten my choice of three books in three different file formats: HTML, XML and JSON.
+
+The three books are: The Bostonians, Small is Beautiful, and How to Lie with Statistics.
+
+For each book, I gathered the following information and put it into a table by hand:
+
+*Title
+*Author(s)
+*Publication Date
+*Publisher
+*Type (i.e. fiction or nonfiction)
+*Genre
+
+Let's start with HTML. 
+
+I used this testing page to ensure I had the table I desired in HTML: http://www.w3schools.com/html/tryit.asp?filename=tryhtml_default
+
+My raw HTML code is located here: https://github.com/AsherMeyers/DATA-607/blob/master/Week-8/Books.html
+
+```{r}
+#Identify the URL where the HTML table is located
+  html.url <- "https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Week-8/Books.html"
+
+#Download the contents of that HTML
+books.html <- getURL(html.url)
+
+#Read the HTML into a table in R
+books.html.table <- readHTMLTable(books.html, header = TRUE)
+
+View(books.html.table)
+kable(books.html.table)
+```
+
+Now for reading the table in XML.
+
+```{r}
+books.xml.url <- getURL("https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Week-8/Books.xml", ssl.verifyPeer=FALSE) #RCurl breaks when confronted with SSL verification, so we set the verify peer field to false
+books.xml.data <- xmlParse(books.xml.url) #Parses the HTML file into an R structure
+books.xml.table <- ldply(xmlToList(books.xml.data), data.frame) #converts each list in the books.xml file into a component of a dataframe
+kable(books.xml.table)
+
+```
+
+In JSON:
+
+```{r}
+books.json.url <- "https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Week-8/Books.json"
+books.json.table <- fromJSON(books.json.url)
+View(books.json.table)
+kable(books.json.table)
+
+```
+
+
+
+We see that when importing the table through HMTL, each book gets its own row, while in JSON, each book gets its own column, and the categories are rows; additionally, the headers are rewritten for each book. In XML, the existence of two authors leads to two entries being created for the same book. 
+
+I consulted with my past project partner Chris Martin for how to import files into R for XML.
