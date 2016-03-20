@@ -1,29 +1,30 @@
 [
   {
-    "title”: “The Bostonians",
-    "author”: “Henry James",
-    "publisher”: “MacMillan,
-    "type”: “Fiction",
-    "genre”: “Tragicomedy",
-    "pubdate”: “1886"
+    "title": "The Bostonians",
+    "author": "Henry James",
+    "publisher": "MacMillan,
+    "type": "Fiction",
+    "genre": "Tragicomedy",
+    "pubdate": "1886"
   },
 
   {
-    "title”: “Small is Beautiful",
-    "author”: “E.F. Schumacher",
-    "publisher”: “Blond & Griggs",
-    "type”: “Nonfiction",
-    "genre”: “Economics",
-    "pubdate”: “1973"
+    "title": "Small is Beautiful",
+    "author": "E.F. Schumacher",
+    "publisher": "Blond & Griggs",
+    "type": "Nonfiction",
+    "genre": "Economics",
+    "pubdate": "1973"
   },
   
   {
-    "title”: “How to Lie with Statistics",
-    "author”: “Darrel Huff, Irving Geis",
-    "publisher”: “W.W. Norton",
-    "type”: “Nonfiction",
-    "genre”: “Statistics",
-    "pubdate”: “1954"
+    "title": "How to Lie with Statistics",
+    "author": "Darrel Huff, Irving Geis",
+    "publisher": "W.W. Norton",
+    "type": "Nonfiction",
+    "genre": "Statistics",
+    "pubdate": "1954"
   }
 ]
+
 
