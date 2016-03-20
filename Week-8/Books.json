@@ -2,11 +2,12 @@
   {
     "title": "The Bostonians",
     "author": "Henry James",
-    "publisher": "MacMillan",
+    "publisher": "MacMillan,
     "type": "Fiction",
     "genre": "Tragicomedy",
     "pubdate": "1886"
   },
+
   {
     "title": "Small is Beautiful",
     "author": "E.F. Schumacher",
@@ -15,6 +16,7 @@
     "genre": "Economics",
     "pubdate": "1973"
   },
+  
   {
     "title": "How to Lie with Statistics",
     "author": "Darrel Huff, Irving Geis",
