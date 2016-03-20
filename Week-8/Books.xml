@@ -19,10 +19,11 @@
 	</BOOK>
 	<BOOK ID="3">
 	  <TITLE>Greatest Hits</TITLE>
-	  <AUTHOR writer = "Darrel Huff" illustrator = "Irving Geis"/>
+	  <AUTHOR writer="Darrel Huff" illustrator="Irving Geis"/>
 	  <GENRE>Statistics</GENRE>
 	  <COMPANY>W.W. Norton</COMPANY>
 	  <TYPE>Nonfiction</TYPE>
 	  <YEAR>1954</YEAR>
 	</BOOK>
 </ASHERFAVBOOKS>
+
