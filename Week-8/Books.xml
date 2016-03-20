@@ -1,36 +1,36 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ASHERFAVBOOKS>
-<BOOK ID = "1">
-<TITLE>The Bostonians</TITLE>
-<AUTHOR>Henry James</AUTHOR>
-<GENRE>Tragicomedy</GENRE>
-<COMPANY>MacMillan</COMPANY>
-<TYPE>Fiction</TYPE>
-<YEAR>1886</YEAR>
-</BOOK>
+	<BOOK ID = "1">
+		<TITLE>The Bostonians</TITLE>
+		<AUTHOR>Henry James</AUTHOR>
+		<GENRE>Tragicomedy</GENRE>
+		<COMPANY>MacMillan</COMPANY>
+		<TYPE>Fiction</TYPE>
+		<YEAR>1886</YEAR>
+	</BOOK>
 
-<BOOK ID = "2">
-<TITLE>Small is Beautiful</TITLE>
-<AUTHOR>Ernst Fritz Schumacher</AUTHOR>
-<GENRE>Economics</GENRE>
-<COMPANY>
- <![CDATA[
- Blond & Griggs
- ]]>
- </COMPANY>
-<TYPE>Nonfiction</TYPE>
-<YEAR>1973</YEAR>
-</BOOK>
+	<BOOK ID = "2">
+		<TITLE>Small is Beautiful</TITLE>
+		<AUTHOR>Ernst Fritz Schumacher</AUTHOR>
+		<GENRE>Economics</GENRE>
+		<COMPANY>
+		 <![CDATA[
+		 Blond & Griggs
+		 ]]>
+		 </COMPANY>
+		<TYPE>Nonfiction</TYPE>
+		<YEAR>1973</YEAR>
+	</BOOK>
 
-<BOOK ID = "3">
-  <TITLE>Greatest Hits</TITLE>
-  <AUTHORS>
-    <WRITER>Darrel Huff</WRITER>
-    <ILLUSTRATOR>Irving Geis</ILLUSTRATOR>
-  </AUTHORS>
-  <GENRE>Statistics</GENRE>
-  <COMPANY>W.W. Norton</COMPANY>
-  <TYPE>Nonfiction</TYPE>
-  <YEAR>1954</YEAR>
- </BOOK>
+	<BOOK ID = "3">
+	  <TITLE>Greatest Hits</TITLE>
+	  <AUTHORS>
+		<WRITER>Darrel Huff</WRITER>
+		<ILLUSTRATOR>Irving Geis</ILLUSTRATOR>
+	  </AUTHORS>
+	  <GENRE>Statistics</GENRE>
+	  <COMPANY>W.W. Norton</COMPANY>
+	  <TYPE>Nonfiction</TYPE>
+	  <YEAR>1954</YEAR>
+	</BOOK>
 </ASHERFAVBOOKS>
