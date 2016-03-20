@@ -1,29 +1,27 @@
 [
   {
-    "title": "The Bostonians",
-    "author": "Henry James",
-    "publisher": "MacMillan,
-    "type": "Fiction",
-    "genre": "Tragicomedy",
-    "pubdate": "1886"
+    "name": "The Hitchhicker's Guide to the Galaxy",
+    "author": "Douglas Adams",
+    "planet": "Space",
+    "publisher": "Del Rey Books",
+    "color": "green",
+    "baddie": "Vogons"
   },
   {
-    "title": "Small is Beautiful",
-    "author": "E.F. Schumacher",
-    "publisher": "Blond & Griggs",
-    "type": "Nonfiction",
-    "genre": "Economics",
-    "pubdate": "1973"
+    "name": "Life, the Universe and Everything",
+    "author": "Douglas Adams",
+    "planet": "Krikkit",
+    "publisher": "Del Rey Books",
+    "color": "purple",
+    "baddie": "People of Krikkit"
   },
   {
-    "title": "How to Lie with Statistics",
-    "author": "Darrel Huff, Irving Geis",
-    "publisher": "W.W. Norton",
-    "type": "Nonfiction",
-    "genre": "Statistics",
-    "pubdate": "1954"
+    "name": "And Another Thing...",
+    "author": "Eoin Colfer, Jane Belson, Douglas Adams",
+    "planet": "Earth...ish",
+    "publisher": "Hyperion",
+    "color": "blue",
+    "baddie": "Vogons"
   }
 ]
-
-
 
