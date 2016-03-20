@@ -1,28 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<catalog>
+<ASHERFAVBOOKS>
 
-	<book id="1">
-		<name>The Hitchhiker's Guide to the Galaxy</name>
-		<author>Douglas Adams</author>
-		<planet>Space</planet>
-		<publisher>Del Rey Books</publisher>
-		<color>green</color>
-		<baddie>Vogons</baddie>
-	</book>
-	<book id="2">
-		<name>Life, the Universe and Everything</name>
-		<author>Douglas Adams</author>
-		<planet>Krikkit</planet>
-		<publisher>Del Rey Books</publisher>
-		<color>purple</color>
-		<baddie>People of Krikkit</baddie>
-	</book>
-	<book id="3">
-		<name>And Another Thing...</name>
-		<author one="Eoin Colfer" two="Jane Belson" three="Douglas Adams"/>
-		<planet>Earth...ish</planet>
-		<publisher>Hyperion</publisher>
-		<color>blue</color>
-		<baddie>Vogons</baddie>
-	</book>
-</catalog>	
+	<BOOK ID="1">
+		<TITLE>The Bostonians</TITLE>
+		<AUTHOR>Henry James</AUTHOR>
+		<GENRE>Tragicomedy</GENRE>
+		<COMPANY>MacMillan</COMPANY>
+		<TYPE>Fiction</TYPE>
+		<YEAR>1886</YEAR>
+	</BOOK>
+	<BOOK ID="2">
+		<TITLE>Small is Beautiful</TITLE>
+		<AUTHOR>Ernst Fritz Schumacher</AUTHOR>
+		<GENRE>Economics</GENRE>
+		<COMPANY>Blond Griggs</COMPANY>
+		<TYPE>Nonfiction</TYPE>
+		<YEAR>1973</YEAR>
+	</BOOK>
+	<BOOK ID="3">
+	    <TITLE>Greatest Hits</TITLE>
+	    <AUTHOR writer="Darrel Huff" illustrator="Irving Geis"/>
+	    <GENRE>Statistics</GENRE>
+	    <COMPANY>W.W. Norton</COMPANY>
+	    <TYPE>Nonfiction</TYPE>
+	    <YEAR>1954</YEAR>
+	</BOOK>
+</ASHERFAVBOOKS>
+
