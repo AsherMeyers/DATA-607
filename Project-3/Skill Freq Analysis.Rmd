@@ -1,0 +1,128 @@
+---
+title: "Project 3 Data Analysis"
+author: "Asher Meyers"
+date: "March 25, 2016"
+output: html_document
+---
+
+```{r}
+library("knitr")
+```
+
+knitr::opts_chunk$set(echo = TRUE)
+## Data Analysis
+
+Now, we have our results, and can commence  analyzing our data. We have gathered the frequency of mentions of each skill on three different dates, March 16, 19 and 20.
+
+We load in the frequency data from our online repository; since the first column is merely line numbers, we can excise that.
+
+```{r}
+freq.url <- url("https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/data/frequency_results.csv")
+
+freq <- read.csv(freq.url, stringsAsFactors = FALSE, sep = ",")
+freq <- freq[,2:4]
+
+View(freq)
+kable(head(freq))
+kable(tail(freq))
+```
+
+Perusing, the data, we see we have multiple dates worth of data. 
+
+Let's combine that data into one table, along with the respective skill titles.
+
+```{r}
+
+freqPart1 <- subset(freq, dates == "2016-03-16")
+freqPart2 <- subset(freq, dates == "2016-03-19")[1:123,]
+freqPart3 <- subset(freq, dates == "2016-03-19")[124:246,]
+freqPart4 <- subset(freq, dates == "2016-03-20")
+
+skillTitle.url <- url("https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/data/skills.csv") # The URL where the file listing the skill titles is located.
+skillTitle <- read.csv(skillTitle.url, stringsAsFactors = FALSE)[1:123,] # Reads the skill titles into R.
+
+```
+
+A few of our skill titles are too long, and will make plotting difficult, so we will shorten them.
+skillTitle[79, 1] <- "NLP"
+skillTitle[3, 1] <- "MapReduce"
+View(skillTitle)
+
+freqAllDates <- data.frame(skill_id = freqPart1$skill_id, t_freq = freqPart1$t_freq + freqPart2$t_freq + freqPart3$t_freq + freqPart4$t_freq, skill_title = skillTitle$Skill) # Creates a dataframe containing all the skills, with the frequency counts from each data gathering session summed together
+
+View(freqAllDates)
+```
+
+##Skills with Zero Mentions
+
+Looking at the data, we see that a number of skills don't get mentioned at all. How many?
+
+```{r}
+zeroFreqs <-subset(freqAllDates, freqAllDates$t_freq == 0) # The subset of frequencies that are zero
+nrow(freqAllDates) #The total number of skills
+nrow(zeroFreqs) #The number of skills with zero mentions
+nrow(zeroFreqs)/nrow(freqAllDates) #The proportion of skills with zero mentions
+```
+
+About 40% of the skills we searched for were never mentioned. To reduce the chance of leaving out an important skill, we clearly included lots of skills that were not commonly talked about. That so many of our skills garnered no mention is not a cause for concern here. 
+
+However, it's important to note, that where there is a significant cost associated with gathering data, one must be more judicious about selecting what data to gather - you can't just dream up a Christmas wishlist of variables and ask for it all.
+
+
+##Most Popular Skills
+
+From here, we'll limit our investigation to the skills with positive frequencies, hereafter freqPositive.
+
+```{r}
+
+freqPositive <- subset(freqAllDates, freqAllDates$t_freq > 0)
+freqSort <- freqPositive[order(-freqPositive$t_freq), ] #Sort results by frequency, descending
+View(freqSort)
+
+```
+
+
+
+```{r}
+
+barplot(freqSort$t_freq, main = "Mentions of Data Science Skills", xlab = "Skill", ylab = "# of mentions")
+
+```
+
+We see that even after we cut out the zero values, there is still a lot of variance in how much each skill is mentioned. Since there are still dozens of skills with positive values, we'll narrow our analysis to the top 15.
+
+```{r, echo = FALSE}
+op <- par(mar = c(15,4,8,2) + 0.1)
+
+barplot(freqSort$t_freq[1:15], main = "Mentions of Data Science Skills", ylab = "# of mentions", names.arg = freqSort$skill_title[1:15], las = 2)
+par(op)
+
+```
+
+
+
+
+
+
+```{r}
+
+
+
+```
+
+
+```{r}
+
+
+
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
