@@ -1,17 +1,27 @@
 ---
-title: "Project 3 Data Analysis"
+title: "Data 607 Project 3: Data Analysis"
 author: "Asher Meyers"
 date: "March 25, 2016"
 output: html_document
 ---
 
 ```{r}
-library("knitr")
-library("plyr")
+suppressWarnings(library(data.table))
+suppressWarnings(library(knitr))
+suppressWarnings(library(tidyr))
+suppressWarnings(require(plyr))
+suppressWarnings(library(wordcloud))
+suppressWarnings(library("RColorBrewer"))
+suppressWarnings(library(plotrix))
+suppressWarnings(library(plotly))
+suppressWarnings(library(ggplot2))
+suppressWarnings(library("devtools"))
+
 ```
 
 knitr::opts_chunk$set(echo = TRUE)
 ## Popularity Contest, Part 1: The Gift of Twitter Gab
+
 
 
 
@@ -118,9 +128,9 @@ Before we begin to visualize and understand the data, we'll do all the previous 
 
 ##Popularity Contest, Part II: Mentions of Data Science Skills in the Press
 
-We'll replicate the process we did with Twitter for our dataset of mentions in the press. Our sample is 91 articles. We checked each article against the same list of skills, to count the number of mentions.
+We'll replicate the process we did with Twitter for our dataset of mentions in the press. Our sample is 91 published articles. We checked each article against a similar list of skills, to count the number of mentions.
 
-Our datasets were formatted slightly differently, because different teams were involved, and no standards were hashed out beforehand; not a big deal here, because the data is simple and we are doing this project as a 'one-off' but if this were a routine activity, we'd want to ensure the datasets were formatted identically, so we'd want to spend some time standardizing the outputs.
+Our datasets were formatted slightly differently, because different teams were involved, and no standards were hashed out beforehand; it's not a big deal here, because the data is simple and we are doing this project as a 'one-off' but if this were a routine activity, we'd want to ensure the datasets were formatted identically, so we'd want to spend some time standardizing the data output format before gathering the data.
 
 ### Step 1: Loading the data
 
@@ -163,97 +173,146 @@ Now, we can start looking at the most frequently mentioned skills. We'll  sort t
 ```{r}
 
 articleSort <- articlePositive[order(-articlePositive$frequency), ] #Sort results by frequency, descending
-articleSort$rank <- seq(1:nrow(articleSort))
 kable(head(articleSort))
 
 ```
 
-Let's look at it in barplot form:
-
-```{r, echo = FALSE}
-
-
-barplot(articleSort$frequency, main = "Mentions of Data Science Skills", ylab = "# of mentions", names.arg = articleSort$skill, col = rainbow(nrow(articleSort)))
-
-```
-
-While this is useful for getting a sense of the distribution of skills, there are simply too many skills to put in a single graph. But this graph does convey that some skills get many more mentions than others - even after we've removed the skills with zero mentions.
-
-Let's take a look at the top 15 skills
-
-```{r}
-op2 <- par(mar = c(6.5,4,8,2) + 0.1)
-barplot(articleSort$frequency[1:15], main = "Mentions of Data Science Skills", ylab = "# of mentions", names.arg = articleSort$skill[1:15], las = 2, cex.names = 0.8, col = rainbow(15))
-par(op2)
-```
-
-In table form:
-
-```{r}
-kable(articleSort[1:15,])
-```
-
-
 
 ### Step 4: Visualizing the Data
 
+We'll bring back our Twitter data here, so that we can look at the results of the two datasets together.
+
+We'll consider both sets of results in barplot form, and use the rainbow() function to distinguish one bar from another.
 
 
 ```{r}
 
-barplot(twitSort$t_freq, main = "Mentions of Data Science Skills", xlab = "Skill", ylab = "# of mentions", col = rainbow(nrow(twitSort)))
+barplot(twitSort$t_freq, main = "Twitter Mentions of Data Science Skills", xlab = "Skill", ylab = "# of mentions", col = rainbow(nrow(twitSort)))
 
 ```
 
-We see that even after we cut out the zero values, there is still a lot of variance in how much each skill is mentioned. Since there are still dozens of skills with positive values, we'll narrow our analysis to the top 15.
+
+```{r}
+
+
+barplot(articleSort$frequency, main = "Press Mentions of Data Science Skills", ylab = "# of mentions", names.arg = articleSort$skill, col = rainbow(nrow(articleSort)))
+
+```
+
+While this is useful for getting a sense of the distribution of skills, there are simply too many skills to put in a single graph. But these graphs do convey that some skills get many more mentions than others - even after we've removed the skills with zero mentions.
+
+Let's take a look at the top 15 skills
 
 ```{r, echo = FALSE}
 op <- par(mar = c(6.1,4,8,2) + 0.1)
 
-barplot(twitSort$t_freq[1:15], main = "Twitter Mentions of Data Science Skills", ylab = "# of mentions", names.arg = twitSort$skill_title[1:15], las = 2, col = rainbow(15))
+barplot(twitSort$t_freq[1:15], main = "Twitter's Top 15 Data Science Skill by # of Mentions", ylab = "# of mentions", names.arg = twitSort$skill_title[1:15], las = 2, col = rainbow(15))
 par(op)
 
+```
+
+```{r}
+op2 <- par(mar = c(6.5,4,8,2) + 0.1)
+barplot(articleSort$frequency[1:15], main = "The Press's Top 15 Data Science Skill by # of Mentions", ylab = "# of mentions", names.arg = articleSort$skill[1:15], las = 2, cex.names = 0.8, col = rainbow(15))
+par(op2)
+```
+
+#####In table form, Twitter:
+
+```{r}
+kable(twitSort[1:15, 3])
+```
+
+
+#####And the press:
+
+```{r}
+kable(articleSort[1:15, 1])
+```
+
+------------
+
+```{r}
+top15 <- articleSort[1:15, ]
+x <- barplot(top15$frequency, main = "Distribution of Skills", xlab = "skills", ylab="frequency", col=c("darkblue","red"), names.arg=top15$skill_name)
+
+
+barplot(top15$frequency, main="Dis. of Skills", ylab="frequency", names.arg=top15$skill_name, las=2, col=rainbow(15))
+
+p <- qplot(top15$skill_name, top15$frequency, data = top15, color = rainbow(15))
+p
+
+p + theme("Distribution of skills" = element_text(angle = 90, hjust = 1))
+
+
+```
+
+
+```{r}
+
+set.seed(1234)
+wordcloud(words = articleSort$skill_name, freq = articleSort$frequency, rot.per=0.45, colors=brewer.pal(8, "Dark2"))
+
+```
+
+
+
+```{r}
+p <- qplot(articleSort$skill_name[1:15],articleSort$frequency[1:15], data = articleSort[1:15], color = articleSort$skill_name[1:15])
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 ```
 
 
 
 ## Analysis of Results
 
-We see that big data is a clear winner. But big data has come to be a byword, even a synonym for data science; indeed, one of the main differences between data science and conventional statistical techniques is that data science handles 'big' datasets generated by software, whereas statistics tends to focus on smaller or simpler samples, or otherwise refers to the specific mathematical techniques used to analyze the data - and not the earlier processes of gathering and tidying the data. 
 
-Big data has also become a buzzword in its own right, one of dubious distinction critics say. The work it describes spans the fields of applied math and computer science - so it can't be simply designated as a mere sub-field of one or the other.
+We see that big data is a clear winner, especially in the press results. But big data has come to be a byword, even a synonym for data science; indeed, one of the main differences between data science and conventional statistical techniques is that data science handles 'big' datasets generated by software, whereas statistics tends to focus on smaller or simpler samples, or otherwise refers to the specific mathematical techniques used to analyze the data - and not the earlier processes of gathering and tidying the data.  
 
-Regardless, it's safe to conclude that to be a data scientist, one must be comfortable with big data.
+Big data has also become a buzzword in its own right, one of dubious distinction critics say. The work it describes spans the fields of applied math and computer science - so it can't be lumped into a bigger field like statistics or computer science. Regardless, it's safe to conclude that to be a data scientist, one must be comfortable with big data.
 
-Next, at #2, we have statistics. Statistics is a core competency of data science - as critical as reflexes are to a racecar driver. 
+Next, at #2 in the press results, we have statistics. Statistics is a core competency of data science - as critical as reflexes are to a racecar driver. 
 
 We could go on and classify each skill, but looking at each of these skills, patterns emerge; we can put them into one of two categories:
 
-### Competencies
+### Skill Type I: Subject Mastery
 
-These are the general subjects and activities that transcend any specific piece of software or field, and are important or essential to being a good data scientist. These are things like fluency in both words, numbers, logic and visuals; the ability to focus, work with a team, and communicate; curiousity and attention to detail. These skills are timeless, at least as long as the data scientists are human. Most of these are general, but some are specific, like machine learning and regression. 
+Areas of competency are the general subjects and activities that transcend any specific piece of software or field, and are important or essential to being a good data scientist. These are things like numeracy and literacy and fluency in logic and visual aides. These skills are timeless, at least as long as the data scientists are human. Most of these are general, but some are more specific, like machine learning and regression. 
 
 It is possible, however, that some of these skills may wax and wane in importance as the tools for doing data science improve. Perhaps you manage to set up a data collection system where little to no data tidying is needed; or some advanced form of artificial intelligence makes creating compelling charts much easier. Certainly, the relative value of these competencies depends on the subject of your work.
 
 
-### Tools
+### Skill Type 2: Tools
 
-These are the specific pieces of software data scientists use to do their jobs - and this is where you'll see the most change over time, in what is and isn't fashionable and in demand. This includes things like R, Hadoop, Python, SQL, Java and other interfaces and languages. Change is especially swift in areas where software can be changed easily - where organizations aren't tied up using legacy hardware and software.
+These are the specific pieces of software data scientists use to do their jobs - and this is where you'll see the most change over time, in what is and isn't fashionable and in demand. Foremost among these are R, Python, Hadoop, SQL and other relational databases. Change is especially swift in areas where software can be changed easily - where organizations aren't tied up using legacy hardware and software.
 
-Still, some of these tools are staples of the data scientist, and will be for some time. R and Python are two obvious candidates. And even when such tools are replaced, facility with the old ones will help to understand the new ones. If say, some other database software came to the fore, experience with SQL would ease the transition to the new program.
-
-
-## A Comparison: The O'Reilly Salary Survey
-
-http://www.oreilly.com/data/free/files/2015-data-science-salary-survey.pdf
+Still, some of these tools are staples of the data scientist, and will be for some time. R and Python are two obvious candidates. And even when such tools are replaced, facility with the old ones will help to understand the new ones that replace them. If say, some other database software came to the fore, experience with SQL would ease the transition to the new program.
 
 
-## Including Plots
+### Skill Type 3: Personal Traits
 
-You can also embed plots, for example:
+Different occupations call for different character traits. You hope that your surgeon is careful enough not to amputate the wrong leg, and that your favorite chef has good hygiene. Data scientists too have certain preferred qualities.
 
-```{r pressure, echo=FALSE}
+* **Communication**: Data scientists should be able to express themselves clearly in non-technical terms, to other people that are data scientists and especially to those who aren't. 
+* **Visualization**: The data scientist should excel at using visual aides to make his points.
+* **Perlustration**: A data scientist must carefully and constantly examine her data for quirks and mishaps; if such irregularities go unseen, it could throw off the whole analysis.
+* **Curiousity**: He must want to learn, both within his domain and without; this will help him find new, useful sources of data, and complete the research necessary. A lack of curiosity and a compartmentalized perspective could lead to missed solutions and stagnation, where innovation is required.  
 
-```
+Calling these items 'traits' can make them sound hard to change - but they can all be improved with focused practice and study, especially with the abundance of tools that technology offers.
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+### Conclusion
+
+There is a dizzying array of buzzwords and skillsets linked to data science; it can be hard to know which ones to pursue, and which to dismiss. Our findings suggest that a few core disciplines underly the field, and great facility with them is essential. These fields are, broadly, mathematics and computer science. Certain sub-fields within them, like statistics and machine learning, may deserve special study.
+
+These subjects should be mastered in concert with the tools of the trade - these currently include R, Python, SQL and other tools. A mathematician without a command of a modern computer language will find it difficult to do data science work. And one should be careful to note that these tools are apt to change, that they are simply the latest incarnation of the methods of data science.
+
+Lastly, one must have the personal qualities to make full use of these tools and subjects. You must be able to write clearly, and to express your findings in intuitive visual aides; you must have a penchant for learning new things in strange domains while keeping a close eye on your work.
+
+In any firm seeking to turn data into insight, data science is essential. But, it's hard to find experts with all the necessary talents - it may be necessary to grow them in-house; if you do find one, they must be kept engaged, and have the autonomy to design their own solutions, to turn data into prosperity, and transform the fate of a firm.
+
+## Further Reading: A Salary Survey
+
+O'Reilly Media published a [salary survey](http://www.oreilly.com/data/free/files/2015-data-science-salary-survey.pdf) that sought to determine what skills are in demand by data scientists. Commendably, the study uses regression analysis to qualify the importance of various attributes, from geography to education to prowess with specific tools. It has an interesting comparison of salaries based on what sorts of tasks data scientists do, from extract, transform and load (ETL) work to meetings and exploratory data analysis.
+
+The O'Reilly survey gives insight into the different career trajectories available to data scientists, as well as recent changes in the popularity of various tools of the trade. While our results seem more pointed at the fundamentals of the field, the repeated annual surveys of O'Reilly Media allow them to uncover temporal trends in the data science field.
+
