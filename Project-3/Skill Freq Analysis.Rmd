@@ -7,114 +7,131 @@ output: html_document
 
 ```{r}
 library("knitr")
+library("plyr")
 ```
 
 knitr::opts_chunk$set(echo = TRUE)
-## Data Analysis
+## Popularity Contest, Part 1: The Gift of Twitter Gab
 
-Now, we have our results, and can commence  analyzing our data. We have gathered the frequency of mentions of each skill on three different dates, March 16, 19 and 20.
 
-We load in the frequency data from our online repository; since the first column is merely line numbers, we can excise that.
+
+We took to Twitter and scraped it for the number of times various data science related skills were mentioned, on three different dates, March 16, 19 and 20. 
+
+We have also scraped the contents of 20 articles for the number of mentions of these same skills, but we'll leave that for part two.
+
+
+###Step 1: Load the Data
+
+We'll load in the Twitter frequency data from our online repository; since the first column is merely line numbers, we can excise that.
 
 ```{r}
-freq.url <- url("https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/data/frequency_results.csv")
+twitter.url <- url("https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/data/frequency_results.csv")
 
-freq <- read.csv(freq.url, stringsAsFactors = FALSE, sep = ",")
-freq <- freq[,2:4]
+twitter <- read.csv(twitter.url, stringsAsFactors = FALSE, sep = ",")
+twitter <- twitter[,2:4]
 
-View(freq)
-kable(head(freq))
-kable(tail(freq))
+View(twitter)
+kable(head(twitter))
+kable(tail(twitter))
 ```
 
-Perusing, the data, we see we have multiple dates worth of data. 
+The skills are simply numbered from 1 onwards - we see that there are 149 skills.
 
-Let's combine that data into one table, along with the respective skill titles.
+###Step 2: Aggregating & Tidying the Data
+
+Looking at the above tables, we see have multiple dates worth of data. Since these days are such days apart, it's not worth analyzing any temporal trend - eg, how certain skills have become more or less popular over time. If we had gathered data years apart, then that would have been a more fruitful exercise.   
+
+Let's combine that data into one table of 149 rows, along with the respective skill titles Our skill titles are stored in a separate table.  
+
+First, we subset the data table into its respective portions, and load the skill titles table.
 
 ```{r}
-
-freqPart1 <- subset(freq, dates == "2016-03-16")
-freqPart2 <- subset(freq, dates == "2016-03-19")[1:123,]
-freqPart3 <- subset(freq, dates == "2016-03-19")[124:246,]
-freqPart4 <- subset(freq, dates == "2016-03-20")
+twitPart1 <- subset(twitter, dates == "2016-03-16")
+twitPart2 <- subset(twitter, dates == "2016-03-19")[1:149, ]
+twitPart3 <- subset(twitter, dates == "2016-03-19")[150:298, ]
+twitPart4 <- subset(twitter, dates == "2016-03-20")
 
 skillTitle.url <- url("https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/data/skills.csv") # The URL where the file listing the skill titles is located.
-skillTitle <- read.csv(skillTitle.url, stringsAsFactors = FALSE)[1:123,] # Reads the skill titles into R.
+skillTitle <- read.csv(skillTitle.url, stringsAsFactors = FALSE) # Reads the skill titles into R.
+
+twitAllDates <- data.frame(skill_id = twitPart1$skill_id, t_freq = twitPart1$t_freq + twitPart2$t_freq + twitPart3$t_freq + twitPart4$t_freq, skill_title = skillTitle$skill_name, stringsAsFactors = FALSE)
 
 ```
 
 
-A few of our skill titles are too long, and will make plotting difficult, so we will shorten them.
-
-```{r}
-skillTitle[79, 1] <- "NLP"
-skillTitle[3, 1] <- "MapReduce"
-View(skillTitle)
-
-freqAllDates <- data.frame(skill_id = freqPart1$skill_id, t_freq = freqPart1$t_freq + freqPart2$t_freq + freqPart3$t_freq + freqPart4$t_freq, skill_title = skillTitle$Skill) # Creates a dataframe containing all the skills, with the frequency counts from each data gathering session summed together
-
-View(freqAllDates)
-```
-
-##Skills with Zero Mentions
+##### Let's Kick Out the Losers: Skills with Zero Mentions
 
 Looking at the data, we see that a number of skills don't get mentioned at all. How many?
 
 ```{r}
-zeroFreqs <-subset(freqAllDates, freqAllDates$t_freq == 0) # The subset of frequencies that are zero
-nrow(freqAllDates) #The total number of skills
-nrow(zeroFreqs) #The number of skills with zero mentions
-nrow(zeroFreqs)/nrow(freqAllDates) #The proportion of skills with zero mentions
+zeroTwits <-subset(twitAllDates, twitAllDates$t_freq == 0) # The subset of frequencies that are zero
+nrow(twitAllDates) #The total number of skills
+nrow(zeroTwits) #The number of skills with zero mentions
+nrow(zeroTwits)/nrow(twitAllDates) #The proportion of skills with zero mentions
 ```
 
-About 40% of the skills we searched for were never mentioned. To reduce the chance of leaving out an important skill, we clearly included lots of skills that were not commonly talked about. That so many of our skills garnered no mention is not a cause for concern here. 
 
-However, it's important to note, that where there is a significant cost associated with gathering data, one must be more judicious about selecting what data to gather - you can't just dream up a Christmas wishlist of variables and ask for it all.
+About 56% of the skills we searched for were never mentioned. To reduce the chance of leaving out an important skill, we clearly included lots of skills that were not commonly talked about. That so many of our skills garnered no mention is not a cause for concern here. You could say our search was sensitive, but not specific :).  
+
+However, it's important to note, that where there is a significant cost associated with gathering data, one must be more judicious about selecting what data to gather - then you can't just dream up a Christmas wishlist of variables and ask for it all.
 
 
-##Most Popular Skills
+### Step 3: Sorting the Data
 
-From here, we'll limit our investigation to the skills with positive frequencies, hereafter freqPositive.
-
-```{r}
-
-freqPositive <- subset(freqAllDates, freqAllDates$t_freq > 0)
-freqSort <- freqPositive[order(-freqPositive$t_freq), ] #Sort results by frequency, descending
-View(freqSort)
-
-```
-
+From here, we'll limit our investigation to the skills with positive frequencies, hereafter twitPositive.
 
 
 ```{r}
 
-barplot(freqSort$t_freq, main = "Mentions of Data Science Skills", xlab = "Skill", ylab = "# of mentions")
+twitPositive <- subset(twitAllDates, twitAllDates$t_freq > 0)
+twitSort <- twitPositive[order(-twitPositive$t_freq), ] #Sort results by frequency, descending
+View(twitSort)
 
 ```
 
-We see that even after we cut out the zero values, there is still a lot of variance in how much each skill is mentioned. Since there are still dozens of skills with positive values, we'll narrow our analysis to the top 15.
 
-```{r, echo = FALSE}
-op <- par(mar = c(15,4,8,2) + 0.1)
+We'll have to do some minor cleaning - we have both 'machinelearning' and 'machine learning' in our dataset, and they both rank very high. We'll combine them into one entry, named 'ML,' because otherwise it will be long and make plotting natively in R more troublesome.
 
-barplot(freqSort$t_freq[1:15], main = "Mentions of Data Science Skills", ylab = "# of mentions", names.arg = freqSort$skill_title[1:15], las = 2)
-par(op)
+Also, one of our top results has a title that is too long, 'predictive analytics' - that will be shortened to 'pred. analysis.'
 
+
+```{r}
+MLRowNum <- which(twitSort$skill_title == "machinelearning") #The row number of machinelearning
+M_LRowNum <- which(twitSort$skill_title == "machine learning")#The row number of machine learning (i.e. with a space in between)
+twitSort$skill_title[MLRowNum] <- "ML" #Renames machinelearning to ML
+twitSort$t_freq[MLRowNum] <- twitSort$t_freq[MLRowNum] + twitSort$t_freq[M_LRowNum] #Sums the two ML frequencies together
+twitSort <- twitSort[-M_LRowNum, ] #Deletes the duplicate row
+#which(twitSort$skill_title == "machine learning")
+
+
+PARowNum <- which(twitSort$skill_title == "predictive analytics")
+twitSort$skill_title[PARowNum] <- "pred. analysis"
+
+View(twitSort)
 ```
+
+
+Before we begin to visualize and understand the data, we'll do all the previous steps again for the mentions we gathered from published articles. Then we'll compare the data from each source side by side.
 
 -------------------------------------------------------------------------
 
 
-##Popularity Contest: Mentions of Data Science Skills in the Press
+##Popularity Contest, Part II: Mentions of Data Science Skills in the Press
 
-Now, we have several articles, and the number of times various skills are mentioned in each article. We checked each article against the same list of skills, to count the number of mentions.
+We'll replicate the process we did with Twitter for our dataset of mentions in the press. Our sample is 91 articles. We checked each article against the same list of skills, to count the number of mentions.
 
+Our datasets were formatted slightly differently, because different teams were involved, and no standards were hashed out beforehand; not a big deal here, because the data is simple and we are doing this project as a 'one-off' but if this were a routine activity, we'd want to ensure the datasets were formatted identically, so we'd want to spend some time standardizing the outputs.
+
+### Step 1: Loading the data
 
 ```{r}
 articleURL <- url("https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/data/Build-URL_DataFrame-Output.csv")
 articleData <- read.csv(articleURL, stringsAsFactors = FALSE, sep = ",")
 View(head(articleData))
 ```
+
+
+### Step 2: Aggregating & Winnowing the Mentions Across Articles
 
 We'll want to aggregate the number of mentions in each article to a grand total of sums across articles. We'll use the aggregate function.
 
@@ -125,6 +142,8 @@ names(articleAgg) <- c("skill", "frequency")
 
 View(articleAgg)
 ```
+
+
 
 With a simple function, we've consolidated our ~14,000 lines of data into 149. We can winnow this data down further, by removing the skills that did not garner a single mention.
 
@@ -137,13 +156,15 @@ View(articlePositive)
 
 Now we have 115 skills with at least one mention in the articles we studied. 34 skills out of 149, or 23%, were not mentioned once.
 
-Now, we can start looking at the most frequently mentioned skills. We'll first sort the skills according to their number of mentions, in descending order
+### Step 3: Sorting the Data
+
+Now, we can start looking at the most frequently mentioned skills. We'll  sort the skills according to their number of mentions, in descending order:
 
 ```{r}
 
 articleSort <- articlePositive[order(-articlePositive$frequency), ] #Sort results by frequency, descending
 articleSort$rank <- seq(1:nrow(articleSort))
-View(articleSort)
+kable(head(articleSort))
 
 ```
 
@@ -172,6 +193,30 @@ In table form:
 kable(articleSort[1:15,])
 ```
 
+
+
+### Step 4: Visualizing the Data
+
+
+
+```{r}
+
+barplot(twitSort$t_freq, main = "Mentions of Data Science Skills", xlab = "Skill", ylab = "# of mentions", col = rainbow(nrow(twitSort)))
+
+```
+
+We see that even after we cut out the zero values, there is still a lot of variance in how much each skill is mentioned. Since there are still dozens of skills with positive values, we'll narrow our analysis to the top 15.
+
+```{r, echo = FALSE}
+op <- par(mar = c(6.1,4,8,2) + 0.1)
+
+barplot(twitSort$t_freq[1:15], main = "Twitter Mentions of Data Science Skills", ylab = "# of mentions", names.arg = twitSort$skill_title[1:15], las = 2, col = rainbow(15))
+par(op)
+
+```
+
+
+
 ## Analysis of Results
 
 We see that big data is a clear winner. But big data has come to be a byword, even a synonym for data science; indeed, one of the main differences between data science and conventional statistical techniques is that data science handles 'big' datasets generated by software, whereas statistics tends to focus on smaller or simpler samples, or otherwise refers to the specific mathematical techniques used to analyze the data - and not the earlier processes of gathering and tidying the data. 
@@ -184,18 +229,23 @@ Next, at #2, we have statistics. Statistics is a core competency of data science
 
 We could go on and classify each skill, but looking at each of these skills, patterns emerge; we can put them into one of two categories:
 
-## Competencies
+### Competencies
 
 These are the general subjects and activities that transcend any specific piece of software or field, and are important or essential to being a good data scientist. These are things like fluency in both words, numbers, logic and visuals; the ability to focus, work with a team, and communicate; curiousity and attention to detail. These skills are timeless, at least as long as the data scientists are human. Most of these are general, but some are specific, like machine learning and regression. 
 
 It is possible, however, that some of these skills may wax and wane in importance as the tools for doing data science improve. Perhaps you manage to set up a data collection system where little to no data tidying is needed; or some advanced form of artificial intelligence makes creating compelling charts much easier. Certainly, the relative value of these competencies depends on the subject of your work.
 
 
-## Tools
+### Tools
 
 These are the specific pieces of software data scientists use to do their jobs - and this is where you'll see the most change over time, in what is and isn't fashionable and in demand. This includes things like R, Hadoop, Python, SQL, Java and other interfaces and languages. Change is especially swift in areas where software can be changed easily - where organizations aren't tied up using legacy hardware and software.
 
 Still, some of these tools are staples of the data scientist, and will be for some time. R and Python are two obvious candidates. And even when such tools are replaced, facility with the old ones will help to understand the new ones. If say, some other database software came to the fore, experience with SQL would ease the transition to the new program.
+
+
+## A Comparison: The O'Reilly Salary Survey
+
+http://www.oreilly.com/data/free/files/2015-data-science-salary-survey.pdf
 
 
 ## Including Plots
