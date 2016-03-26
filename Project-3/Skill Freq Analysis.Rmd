@@ -8,9 +8,6 @@ output: html_document
 
 ## Popularity Contest, Part 1: The Gift of Twitter Gab
 
-
-
-
 We took to Twitter and scraped it for the number of times various data science related skills were mentioned, four times on three different dates: March 16, 19 and 20. 
 
 We have also scraped the contents of 20 articles for the number of mentions of these same skills, but we'll leave that for part two.
@@ -29,7 +26,14 @@ suppressWarnings(library("devtools"))
 
 ```
 
+## Popularity Contest, Part 1: The Gift of Twitter Gab
 
+
+
+
+We took to Twitter and scraped it for the number of times various data science related skills were mentioned, on three different dates, March 16, 19 and 20. 
+
+We have also scraped the contents of 20 articles for the number of mentions of these same skills, but we'll leave that for part two.
 
 
 ###Step 1: Load the Data
@@ -42,7 +46,9 @@ twitter.url <- url("https://raw.githubusercontent.com/RobertSellers/SlackProject
 twitter <- read.csv(twitter.url, stringsAsFactors = FALSE, sep = ",")
 twitter <- twitter[,2:4]
 
+View(twitter)
 kable(head(twitter))
+kable(tail(twitter))
 ```
 
 The skills are simply numbered from 1 onwards - we see that there are 149 skills.
@@ -69,6 +75,8 @@ twitAllDates <- data.frame(skill_id = twitPart1$skill_id, t_freq = twitPart1$t_f
 ```
 
 
+
+
 ##### Let's Kick Out the Losers: Skills with Zero Mentions
 
 Looking at the data, we see that a number of skills don't get mentioned at all. How many?
@@ -79,6 +87,7 @@ nrow(twitAllDates) #The total number of skills
 nrow(zeroTwits) #The number of skills with zero mentions
 nrow(zeroTwits)/nrow(twitAllDates) #The proportion of skills with zero mentions
 ```
+
 
 
 About 56% of the skills we searched for were never mentioned. To reduce the chance of leaving out an important skill, we clearly included lots of skills that were not commonly talked about. That so many of our skills garnered no mention is not a cause for concern here. You could say our search was sensitive, but not specific :).  
@@ -95,6 +104,7 @@ From here, we'll limit our investigation to the skills with positive frequencies
 
 twitPositive <- subset(twitAllDates, twitAllDates$t_freq > 0)
 twitSort <- twitPositive[order(-twitPositive$t_freq), ] #Sort results by frequency, descending
+View(twitSort)
 
 ```
 
@@ -116,7 +126,7 @@ twitSort <- twitSort[-M_LRowNum, ] #Deletes the duplicate row
 PARowNum <- which(twitSort$skill_title == "predictive analytics")
 twitSort$skill_title[PARowNum] <- "pred. analysis"
 
-kable(head(twitSort))
+View(twitSort)
 ```
 
 
@@ -136,7 +146,7 @@ Our datasets were formatted slightly differently, because different teams were i
 ```{r}
 articleURL <- url("https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/data/Build-URL_DataFrame-Output.csv")
 articleData <- read.csv(articleURL, stringsAsFactors = FALSE, sep = ",")
-kable(head(articleData))
+View(head(articleData))
 ```
 
 
@@ -149,7 +159,7 @@ We'll want to aggregate the number of mentions in each article to a grand total 
 articleAgg <- aggregate(articleData$ds_freq, by=list(Category= articleData$skill_name), FUN=sum)
 names(articleAgg) <- c("skill", "frequency")
 
-kable(head(articleAgg))
+View(articleAgg)
 ```
 
 
@@ -160,7 +170,7 @@ With a simple function, we've consolidated our ~14,000 lines of data into 149. W
 
 articlePositive <- subset(articleAgg, articleAgg$frequency > 0)
 nrow(articlePositive)
-kable(head(articlePositive))
+View(articlePositive)
 ```
 
 Now we have 115 skills with at least one mention in the articles we studied. 34 skills out of 149, or 23%, were not mentioned once.
@@ -186,7 +196,7 @@ We'll consider both sets of results in barplot form, and use the rainbow() funct
 
 ```{r}
 
-barplot(twitSort$t_freq, main = "Twitter Mentions of Data Science Skills", xlab = "Skill", ylab = "# of mentions", col = rainbow(nrow(twitSort)))
+barplot(twitSort$t_freq, main = "Twitter Mentions of Data Science Skills", xlab = "# of Mentions", ylab = "skills", horiz = TRUE, col = rainbow(nrow(twitSort)))
 
 ```
 
@@ -194,7 +204,7 @@ barplot(twitSort$t_freq, main = "Twitter Mentions of Data Science Skills", xlab 
 ```{r}
 
 
-barplot(articleSort$frequency, main = "Press Mentions of Data Science Skills", ylab = "# of mentions", names.arg = articleSort$skill, col = rainbow(nrow(articleSort)), horiz = FALSE)
+barplot(articleSort$frequency, main = "Press Mentions of Data Science Skills", xlab = "# of Mentions", ylab = "skills", horiz =TRUE, col = rainbow(nrow(articleSort)))
 
 ```
 
@@ -206,9 +216,7 @@ Let's take a look at the top 15 skills
 op <- par(mar = c(4.2,6.3,3,2) + 0.1)
 barplot(twitSort$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter", xlab = "# of Twitter Mentions", names.arg = twitSort$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
 par(op)
-```
 
-```{r}
 op2 <- par(mar = c(4.2,6.3,3,2) + 0.1)
 barplot(articleSort$frequency[15:1], main = "The 15 Most Mentioned Data Science Skills in the Press", xlab = "# of Press Mentions", names.arg = articleSort$skill[15:1], las = 2, cex.names = 0.8, col = rainbow(15), horiz = TRUE)
 par(op2)
@@ -228,8 +236,37 @@ kable(articleSort[1:15, 1])
 ```
 
 ------------
+
+```{r}
+top15 <- articleSort[1:15, ]
+x <- barplot(top15$frequency, main = "Distribution of Skills", xlab = "skills", ylab="frequency", col=c("darkblue","red"), names.arg=top15$skill)
+
+
+top15 <- articleSort[1:15, ]
+barplot(top15$frequency, main = "Distribution of Skills", xlab = "frequency", ylab="skills", horiz=TRUE, col=c("darkblue","red"), names.arg=top15$skill)
+
+
+p <- qplot(top15$skill, top15$frequency, data = top15, color = top15$skill)
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
+
+
+```
+
+
 ```{r}
 
+set.seed(1234)
+wordcloud(words = articleSort$skill, freq = articleSort$frequency, rot.per=0.45, colors=brewer.pal(8, "Dark2"))
+
+
+
+```
+
+
+```{r, echo = FALSE}
 twitPart1$skill_title <- skillTitle$skill_name
 twitPart2$skill_title <- skillTitle$skill_name
 twitPart3$skill_title <- skillTitle$skill_name
@@ -255,35 +292,8 @@ par(op)
 op <- par(mar = c(4.2,6.3,3,2) + 0.1)
 barplot(twitSort4$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter IV", xlab = "# of Twitter Mentions", names.arg = twitSort4$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
 par(op)
-
 ```
 
--------------
-
-
-
-```{r}
-'top15 <- articleSort[1:15, ]
-x <- barplot(top15$frequency, main = "Distribution of Skills", xlab = "skills", ylab="frequency", col=c("darkblue","red"), names.arg=top15$skill_name)
-
-
-barplot(top15$frequency, main="Dis. of Skills", ylab="frequency", names.arg=top15$skill_name, las=2, col=rainbow(15))
-
-p <- qplot(top15$skill_name, top15$frequency, data = top15, color = rainbow(15))
-p
-
-p + theme("Distribution of skills" = element_text(angle = 90, hjust = 1))
-'
-
-```
-
-
-```{r}
-'
-set.seed(1234)
-wordcloud(words = articleSort$skill_name, freq = articleSort$frequency, rot.per=0.45, colors=brewer.pal(8, "Dark2"))
-'
-```
 
 ## Analysis of Results
 
@@ -294,11 +304,11 @@ Big data has also become a buzzword in its own right, one of dubious distinction
 
 Next, at #2 in the press results, we have statistics. Statistics is a core competency of data science - as critical as reflexes are to a racecar driver. 
 
-We could go on and classify each skill, but looking at each of these skills, patterns emerge; we can put them into one of three categories:
+We could go on and classify each skill, but looking at each of these skills, patterns emerge; we can put them into one of two categories:
 
 ### Skill Type I: Subject Mastery
 
-Areas of competency are the general subjects and activities that transcend any specific piece of software or field, and are important or essential to being a good data scientist. These are things like numeracy and literacy and fluency in logic and visual aides. These skills are timeless, at least as long as the data scientists are human. Most of these are high-level, like math and statistics, but some are more specific, like machine learning and regression. 
+Areas of competency are the general subjects and activities that transcend any specific piece of software or field, and are important or essential to being a good data scientist. These are things like numeracy and literacy and fluency in logic and visual aides. These skills are timeless, at least as long as the data scientists are human. Most of these are general, but some are more specific, like machine learning and regression. 
 
 It is possible, however, that some of these skills may wax and wane in importance as the tools for doing data science improve. Perhaps you manage to set up a data collection system where little to no data tidying is needed; or some advanced form of artificial intelligence makes creating compelling charts much easier. Certainly, the relative value of these competencies depends on the subject of your work.
 
@@ -336,4 +346,7 @@ In any firm seeking to turn data into insight, data science is essential. But, i
 O'Reilly Media published a [salary survey](http://www.oreilly.com/data/free/files/2015-data-science-salary-survey.pdf) that sought to determine what skills are in demand by data scientists. Commendably, the study uses regression analysis to qualify the importance of various attributes, from geography to education to prowess with specific tools. It has an interesting comparison of salaries based on what sorts of tasks data scientists do, from extract, transform and load (ETL) work to meetings and exploratory data analysis.
 
 The O'Reilly survey gives insight into the different career trajectories available to data scientists, as well as recent changes in the popularity of various tools of the trade. While our results seem more pointed at the fundamentals of the field, the repeated annual surveys of O'Reilly Media allow them to uncover temporal trends in the data science field.
+
+## Backup charts
+
 
