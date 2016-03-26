@@ -195,7 +195,7 @@ barplot(twitSort$t_freq, main = "Twitter Mentions of Data Science Skills", xlab 
 ```{r}
 
 
-barplot(articleSort$frequency, main = "Press Mentions of Data Science Skills", ylab = "# of mentions", names.arg = articleSort$skill, col = rainbow(nrow(articleSort)))
+barplot(articleSort$frequency, main = "Press Mentions of Data Science Skills", xlab = "# of mentions",horiz =TRUE, names.arg = articleSort$skill, col = rainbow(nrow(articleSort)))
 
 ```
 
@@ -206,14 +206,14 @@ Let's take a look at the top 15 skills
 ```{r, echo = FALSE}
 op <- par(mar = c(6.1,4,8,2) + 0.1)
 
-barplot(twitSort$t_freq[1:15], main = "Twitter's Top 15 Data Science Skill by # of Mentions", ylab = "# of mentions", names.arg = twitSort$skill_title[1:15], las = 2, col = rainbow(15))
+barplot(twitSort$t_freq[1:15], main = "Twitter's Top 15 Data Science Skill by # of Mentions", xlab = "# of mentions",horiz =TRUE, names.arg = twitSort$skill_title[1:15], las = 2, col = rainbow(15))
 par(op)
 
 ```
 
 ```{r}
 op2 <- par(mar = c(6.5,4,8,2) + 0.1)
-barplot(articleSort$frequency[1:15], main = "The Press's Top 15 Data Science Skill by # of Mentions", ylab = "# of mentions", names.arg = articleSort$skill[1:15], las = 2, cex.names = 0.8, col = rainbow(15))
+barplot(articleSort$frequency[1:15], main = "The Press's Top 15 Data Science Skill by # of Mentions", xlab = "# of mentions",horiz =TRUE, names.arg = articleSort$skill[1:15], las = 2, cex.names = 0.8, col = rainbow(15))
 par(op2)
 ```
 
@@ -234,15 +234,18 @@ kable(articleSort[1:15, 1])
 
 ```{r}
 top15 <- articleSort[1:15, ]
-x <- barplot(top15$frequency, main = "Distribution of Skills", xlab = "skills", ylab="frequency", col=c("darkblue","red"), names.arg=top15$skill_name)
+x <- barplot(top15$frequency, main = "Distribution of Skills", xlab = "skills", ylab="frequency", col=c("darkblue","red"), names.arg=top15$skill)
 
 
-barplot(top15$frequency, main="Dis. of Skills", ylab="frequency", names.arg=top15$skill_name, las=2, col=rainbow(15))
+top15 <- articleSort[1:15, ]
+barplot(top15$frequency, main = "Distribution of Skills", xlab = "frequency", ylab="skills", horiz=TRUE, col=c("darkblue","red"), names.arg=top15$skill)
 
-p <- qplot(top15$skill_name, top15$frequency, data = top15, color = rainbow(15))
-p
 
-p + theme("Distribution of skills" = element_text(angle = 90, hjust = 1))
+p <- qplot(top15$skill, top15$frequency, data = top15, color = top15$skill)
+p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
+
+
+
 
 
 ```
@@ -251,16 +254,15 @@ p + theme("Distribution of skills" = element_text(angle = 90, hjust = 1))
 ```{r}
 
 set.seed(1234)
-wordcloud(words = articleSort$skill_name, freq = articleSort$frequency, rot.per=0.45, colors=brewer.pal(8, "Dark2"))
+wordcloud(words = articleSort$skill, freq = articleSort$frequency, rot.per=0.45, colors=brewer.pal(8, "Dark2"))
+
+
 
 ```
 
 
 
-```{r}
-p <- qplot(articleSort$skill_name[1:15],articleSort$frequency[1:15], data = articleSort[1:15], color = articleSort$skill_name[1:15])
-p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
-```
+
 
 
 
