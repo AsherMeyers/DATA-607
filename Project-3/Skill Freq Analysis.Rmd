@@ -67,7 +67,7 @@ twitPart2 <- subset(twitter, dates == "2016-03-19")[1:149, ]
 twitPart3 <- subset(twitter, dates == "2016-03-19")[150:298, ]
 twitPart4 <- subset(twitter, dates == "2016-03-20")
 
-skillTitle.url <- url("https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/data/skills.csv") # The URL where the file listing the skill titles is located.
+skillTitle.url <- url("https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/data/skillsAsher.csv") # The URL where the file listing the skill titles is located.
 skillTitle <- read.csv(skillTitle.url, stringsAsFactors = FALSE) # Reads the skill titles into R.
 
 twitAllDates <- data.frame(skill_id = twitPart1$skill_id, t_freq = twitPart1$t_freq + twitPart2$t_freq + twitPart3$t_freq + twitPart4$t_freq, skill_title = skillTitle$skill_name, stringsAsFactors = FALSE)
