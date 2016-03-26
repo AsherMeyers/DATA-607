@@ -238,15 +238,11 @@ kable(articleSort[1:15, 1])
 ------------
 
 ```{r}
-top15 <- articleSort[1:15, ]
-x <- barplot(top15$frequency, main = "Distribution of Skills", xlab = "skills", ylab="frequency", col=c("darkblue","red"), names.arg=top15$skill)
-
 
 top15 <- articleSort[1:15, ]
-barplot(top15$frequency, main = "Distribution of Skills", xlab = "frequency", ylab="skills", horiz=TRUE, col=c("darkblue","red"), names.arg=top15$skill)
 
 
-p <- qplot(top15$skill, top15$frequency, data = top15, color = top15$skill)
+p <- qplot(skill, frequency, data = top15, color = skill)
 p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 
