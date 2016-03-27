@@ -1,12 +1,8 @@
----
-title: "Data 607 Project 3: Data Analysis"
-author: "Asher Meyers & Gurpreet Singh"
-date: "March 25, 2016"
-output: html_document
----
+__---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------__
 
+# Statistical Analysis and Modeling
 
-## Popularity Contest, Part 1: The Gift of Twitter Gab
+## Part 1: The Gift of Twitter Gab
 
 We took to Twitter and scraped it for the number of times various data science related skills were mentioned, four times on three different dates: March 16, 19 and 20. 
 
@@ -318,37 +314,37 @@ par(op)
 
 #### TDM Results
 
-Below follow the 200 most frequent terms in the articles searched.
+Below follow the 50 most frequent terms in the articles searched.
 
 ```{r}
-kable(tdmSort[1:200, ])
+kable(tdmSort[1:50, ])
 ```
 
 
 Below is a list of data science skills within the top 200 mentions of the TDM results:
 
-#22 Big Data
-#25 Analytics
-#51 statistics
-#55 analysis
-#74 programming
-#76 hadoop
-#78 management
-#88 statistical
-#104 python
-#105 experience
-#112 mining
-#128 linkedin
-#137 data mining
-#139 visualization
-#163 cloud
-#172 algorithms
-#175 search
-#179 insights
-#180 team
-#191 research
-#195 training
-#200 development
+22 Big Data
+25 Analytics
+51 statistics
+55 analysis
+74 programming
+76 hadoop
+78 management
+88 statistical
+104 python
+105 experience
+112 mining
+128 linkedin
+137 data mining
+139 visualization
+163 cloud
+172 algorithms
+175 search
+179 insights
+180 team
+191 research
+195 training
+200 development
 
 In barplot form, the top 15:
 
@@ -419,8 +415,9 @@ And in fact, such search methods have become commonplace in the legal industry, 
 
 In our work, TDM serves as a valuable complement to the other methods, even if it did not make any significantly different findings. And, these results are more akin to the words one would use to describe data science as a profession to laymen. Whereas the other results tended to focus on data-science specific terms, the TDM results highlighted general as well as specific skills, like management.
 
-### Conclusion
+__---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------__
 
+# Conclusion
 
 Three different approaches were applied for data collection and analysis. Analysis of these techniques  yield comparable results with top 5 skills oriented towards ```Big Data, Statistics, R, Machine Learning, and Python``. Big Data skills were emphasized in Press and TDM, while Machine Learning ranked top in Twitter Collection method. 
 These results of the current analysis should not minimize the importance some data science skills over others. The importance of data science skills likely varies by the requirements of the project. Skills can not be important unless they are required by the job parameters. 
