@@ -10,7 +10,7 @@ output: html_document
 
 We took to Twitter and scraped it for the number of times various data science related skills were mentioned, four times on three different dates: March 16, 19 and 20. 
 
-We have also scraped the contents of 20 articles for the number of mentions of these same skills, but we'll leave that for part two.
+We have also scraped the contents of 20 articles for the number of mentions of these same skills, which we'll discuss in part two, followed by discussion of the TDM matrix in part three. The data aggregation will be completed separately, but the analysis of the three parts will be done jointly.
 
 ```{r, echo = FALSE}
 suppressWarnings(library(data.table))
@@ -186,6 +186,24 @@ kable(head(articleSort))
 
 ```
 
+## Part III: Term Document Matrix 
+
+The output of the term document matrix was posted on Github, from where we will retrieve it. This has the counts of each word in each article; we will aggregate these word totals into a sum for each word across all articles, and sort them in descending order of frequency.
+
+
+```{r}
+tdmURL <- "https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/term-document-matrix/tdm-df"
+
+tdmData <- read.csv(url(tdmURL), stringsAsFactors = FALSE, sep = ",")
+names(tdmData) <- c("article", "term", "freq")
+
+tdmAgg <- aggregate(tdmData$freq, by=list(Category= tdmData$term), FUN=sum)
+tdmSort <- tdmAgg[order(-tdmAgg$x), ] #Sort results by frequency, descending
+tdmSort$rank <- seq(1:nrow(tdmSort))
+
+```
+
+
 
 ### Step 4: Visualizing the Data
 
@@ -290,6 +308,54 @@ barplot(twitSort4$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skill
 par(op)
 ```
 
+#### TDM Results
+
+Below follow the 200 most frequent terms in the articles searched.
+
+```{r}
+kable(tdmSort[1:200, ])
+```
+
+
+Below is a list of data science skills within the top 200 mentions of the TDM results:
+
+#22 Big Data
+#25 Analytics
+#51 statistics
+#55 analysis
+#74 programming
+#76 hadoop
+#78 management
+#88 statistical
+#104 python
+#105 experience
+#112 mining
+#128 linkedin
+#137 data mining
+#139 visualization
+#163 cloud
+#172 algorithms
+#175 search
+#179 insights
+#180 team
+#191 research
+#195 training
+#200 development
+
+In barplot form, the top 15:
+
+```{r}
+
+tdm15 <- rev(c(22, 25, 51, 55, 74, 76, 78, 88, 104, 105, 112, 128, 137, 139, 163))
+
+op <- par(mar = c(4.2,6.3,3,2) + 0.1)
+barplot(tdmSort$x[tdm15], main = "The 15 Most Mentioned Data Science Terms, via TDM", xlab = "# of Mentions", names.arg = tdmSort$Category[tdm15], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
+par(op)
+```
+
+
+The results picked up some javascript tags, but those have been removed.
+
 
 ## Analysis of Results
 
@@ -302,7 +368,7 @@ Next, at #2 in the press results, we have statistics. Statistics is a core compe
 
 In the Twitter data, the results are fairly consistent from day to day, with machine learning coming out on top; the other skills are closer to one another, so their relative frequency fluctuates a bit.
 
-We could go on and classify each skill, but looking at each of these skills, patterns emerge; we can put them into one of two categories:
+We could go on and classify each skill, but looking at each of these skills, patterns emerge; we can put them into one of three categories:
 
 ### Skill Type I: Subject Mastery
 
@@ -329,15 +395,31 @@ Different occupations call for different character traits. You hope that your su
 
 Calling these items 'traits' can make them sound hard to change - but they can all be improved with focused practice and study, especially with the abundance of tools that technology offers.
 
+### TDM Discussion
+
+This method yields many words that may be common in describing data science - like the word 'data' - but they aren't a skill per se.  
+
+The TDM approach is valuable because it will highlight terms that weren't explicitly searched. If one had no prior information on what skills were useful, the TDM approach would be a valuable tool. In a sense, TDM lets the data 'tell' us what is most important. But it still requires human oversight; the results of TDM  must be parsed manually, to winnow through the frequent but irrelevant terms. Similar terms like statistics and statistical may be worth combining to determine a more accurate result.
+
+This refining process can easily yield differing results. For instance, in our top 200 terms, what terms to pick out as skills is somewhat arbitrary - python is clearly a skill, but words like analysis, training, insights, experience, research, search, team are a bit more ambiguous - but even those are suggestive of what makes a successful data scientist.  
+
+And, as TDM's large accompanying dataset suggests, it is more computationally intensive. With a larger corpus of work to search, the TDM approach would have to be  altered to remain doable.  
+
+Of course, the TDM method employed is a simple one. It could be paired with say, a machine learning algorithm, with which it 'learns' to distinguish common but unhelpful words like "data" from helpful ones like "statistics."  
+
+And in fact, such search methods have become commonplace in the legal industry, in a process known as discovery; in a given lawsuit, thousands of pages and emails might need to be searched to confirm or refute the allegations at hand. A burdensome, costly task for humans, but one well suited to a tireless algorithm.  
+
+In our work, TDM serves as a valuable complement to the other methods, even if it did not make any significantly different findings. And, these results are more akin to the words one would use to describe data science as a profession to laymen. Whereas the other results tended to focus on data-science specific terms, the TDM results highlighted general as well as specific skills, like management.
+
 ### Conclusion
 
-There is a dizzying array of buzzwords and skillsets linked to data science; it can be hard to know which ones to pursue, and which to dismiss. Our findings suggest that a few core disciplines underly the field, and great facility with them is essential. These fields are, broadly, mathematics and computer science. Certain sub-fields within them, like statistics and machine learning, may deserve special study.
+There is a dizzying array of buzzwords and skillsets linked to data science; it can be hard to know which ones to pursue, and which to dismiss. Our findings suggest that a few core disciplines underlie the field, and great facility with them is essential. These fields are, broadly, mathematics and computer science. Certain sub-fields within them, like statistics and machine learning, may deserve special study.
 
 These subjects should be mastered in concert with the tools of the trade - these currently include R, Python, SQL and other tools. A mathematician without a command of a modern computer language will find it difficult to do data science work. And one should be careful to note that these tools are apt to change, that they are simply the latest incarnation of the methods of data science.
 
 Lastly, one must have the personal qualities to make full use of these tools and subjects. You must be able to write clearly, and to express your findings in intuitive visual aides; you must have a penchant for learning new things in strange domains while keeping a close eye on your work.
 
-In any firm seeking to turn data into insight, data science is essential. But, it's hard to find experts with all the necessary talents - it may be necessary to grow them in-house; if you do find one, they must be kept engaged, and have the autonomy to design their own solutions, to turn data into prosperity, and transform the fate of a firm.
+And from a business perspective, data science is essential to turning data into insight. But, it can be hard to find experts with all the necessary talents - they may need to be groomed from within; if one is found, they must be kept engaged, and have the autonomy to design their own solutions, to turn data into prosperity, and transform the fate of a firm.
 
 ## Further Reading: A Salary Survey
 
@@ -347,4 +429,12 @@ The O'Reilly survey gives insight into the different career trajectories availab
 
 ## Backup charts
 
+```{r}
+tdmURL <- "https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/term-document-matrix/tdm-sorted-df"
+
+tdmData <- read.csv(url(tdmURL), stringsAsFactors = FALSE, sep = ",")
+names(tdmData) <- c("term", "freq")
+
+View(head(tdmData))
+```
 
