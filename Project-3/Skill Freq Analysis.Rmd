@@ -26,8 +26,6 @@ suppressWarnings(library("devtools"))
 
 ```
 
-## Popularity Contest, Part 1: The Gift of Twitter Gab
-
 
 
 
@@ -135,7 +133,7 @@ Before we begin to visualize and understand the data, we'll do all the previous 
 -------------------------------------------------------------------------
 
 
-##Popularity Contest, Part II: Mentions of Data Science Skills in the Press
+##Part II: Mentions of Data Science Skills in the Press
 
 We'll replicate the process we did with Twitter for our dataset of mentions in the press. Our sample is 91 published articles. We checked each article against a similar list of skills, to count the number of mentions.
 
@@ -186,7 +184,7 @@ kable(head(articleSort))
 
 ```
 
-## Part III: Term Document Matrix 
+## Part III: Term Document Matrix - Most Frequently Used Words in the Press 
 
 The output of the term document matrix was posted on Github, from where we will retrieve it. This has the counts of each word in each article; we will aggregate these word totals into a sum for each word across all articles, and sort them in descending order of frequency.
 
@@ -207,9 +205,9 @@ tdmSort$rank <- seq(1:nrow(tdmSort))
 
 ### Step 4: Visualizing the Data
 
-We'll bring back our Twitter data here, so that we can look at the results of the two datasets together.
+We'll bring back our Twitter data here, so that we can look at the results of all three datasets together.
 
-We'll consider both sets of results in barplot form, and use the rainbow() function to distinguish one bar from another.
+We'll consider all three sets of results in barplot form, and use the rainbow() function to distinguish one bar from another.
 
 
 ```{r}
@@ -225,6 +223,13 @@ barplot(twitSort$t_freq, main = "Twitter Mentions of Data Science Skills", xlab 
 barplot(articleSort$frequency, main = "Press Mentions of Data Science Skills", xlab = "# of Mentions", ylab = "skills", horiz =TRUE, col = rainbow(nrow(articleSort)))
 
 ```
+
+```{r}
+
+barplot(tdmSort$x, main = "Most Used Words in the Press, via TDM", xlab = "# of Mentions", ylab = "skills", horiz =TRUE, col = rainbow(nrow(tdmSort)))
+
+```
+
 
 While this is useful for getting a sense of the distribution of skills, there are simply too many skills to put in a single graph. But these graphs do convey that some skills get many more mentions than others - even after we've removed the skills with zero mentions.
 
@@ -247,13 +252,15 @@ kable(twitSort[1:15, 3])
 ```
 
 
-#####And the Press:
+##### And the Press:
 
 ```{r}
 kable(articleSort[1:15, 1])
 ```
 
 ------------
+
+##### Top 15 Data Science Skills in the Press
 
 ```{r}
 
@@ -269,6 +276,7 @@ p + theme(axis.text.x = element_text(angle = 90, hjust = 1))
 
 ```
 
+#### Data Science Skills in Wordcloud Form, via the Press
 
 ```{r}
 
@@ -292,19 +300,19 @@ twitSort3 <- twitPart3[order(-twitPart3$t_freq), ]
 twitSort4 <- twitPart4[order(-twitPart4$t_freq), ]
 
 op <- par(mar = c(4.2,6.3,3,2) + 0.1)
-barplot(twitSort1$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter I", xlab = "# of Twitter Mentions", names.arg = twitSort1$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
+barplot(twitSort1$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter Part I", xlab = "# of Twitter Mentions", names.arg = twitSort1$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
 par(op)
 
 op <- par(mar = c(4.2,6.3,3,2) + 0.1)
-barplot(twitSort2$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter II", xlab = "# of Twitter Mentions", names.arg = twitSort2$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
+barplot(twitSort2$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter Part II", xlab = "# of Twitter Mentions", names.arg = twitSort2$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
 par(op)
 
 op <- par(mar = c(4.2,6.3,3,2) + 0.1)
-barplot(twitSort3$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter III", xlab = "# of Twitter Mentions", names.arg = twitSort3$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
+barplot(twitSort3$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter Part III", xlab = "# of Twitter Mentions", names.arg = twitSort3$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
 par(op)
 
 op <- par(mar = c(4.2,6.3,3,2) + 0.1)
-barplot(twitSort4$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter IV", xlab = "# of Twitter Mentions", names.arg = twitSort4$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
+barplot(twitSort4$t_freq[15:1], main = "The 15 Most Mentioned Data Science Skills on Twitter Part IV", xlab = "# of Twitter Mentions", names.arg = twitSort4$skill_title[15:1], las = 2, col = rainbow(15), cex.names = 0.8, horiz = TRUE)
 par(op)
 ```
 
@@ -426,15 +434,3 @@ And from a business perspective, data science is essential to turning data into 
 O'Reilly Media published a [salary survey](http://www.oreilly.com/data/free/files/2015-data-science-salary-survey.pdf) that sought to determine what skills are in demand by data scientists. Commendably, the study uses regression analysis to qualify the importance of various attributes, from geography to education to prowess with specific tools. It has an interesting comparison of salaries based on what sorts of tasks data scientists do, from extract, transform and load (ETL) work to meetings and exploratory data analysis.
 
 The O'Reilly survey gives insight into the different career trajectories available to data scientists, as well as recent changes in the popularity of various tools of the trade. While our results seem more pointed at the fundamentals of the field, the repeated annual surveys of O'Reilly Media allow them to uncover temporal trends in the data science field.
-
-## Backup charts
-
-```{r}
-tdmURL <- "https://raw.githubusercontent.com/RobertSellers/SlackProjects/master/term-document-matrix/tdm-sorted-df"
-
-tdmData <- read.csv(url(tdmURL), stringsAsFactors = FALSE, sep = ",")
-names(tdmData) <- c("term", "freq")
-
-View(head(tdmData))
-```
-
