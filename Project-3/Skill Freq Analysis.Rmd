@@ -241,14 +241,14 @@ barplot(articleSort$frequency[15:1], main = "The 15 Most Mentioned Data Science 
 par(op2)
 ```
 
-#####In List Form, Twitter:
+#####In List Form, the 15 Most Mentioned Skills On Twitter:
 
 ```{r}
 kable(twitSort[1:15, 3])
 ```
 
 
-##### And the Press:
+##### The 15 Most Mentioned Skills in the Press:
 
 ```{r}
 kable(articleSort[1:15, 1])
@@ -314,37 +314,19 @@ par(op)
 
 #### TDM Results
 
-Below follow the 50 most frequent terms in the articles searched.
+Below follow the 25 most frequent terms in the articles searched.
 
 ```{r}
-kable(tdmSort[1:50, ])
+kable(tdmSort[1:25, ])
 ```
 
 
-Below is a list of data science skills within the top 200 mentions of the TDM results:
+Below is a list of data science skills parsed from within the top 200 mentions of the TDM results:
 
-22 Big Data
-25 Analytics
-51 statistics
-55 analysis
-74 programming
-76 hadoop
-78 management
-88 statistical
-104 python
-105 experience
-112 mining
-128 linkedin
-137 data mining
-139 visualization
-163 cloud
-172 algorithms
-175 search
-179 insights
-180 team
-191 research
-195 training
-200 development
+
+```{r}
+kable(tdmSort[c(22, 25, 51, 55, 74, 76, 78, 88, 104, 105, 112, 128, 137, 139, 163), ])
+```
 
 In barplot form, the top 15:
 
