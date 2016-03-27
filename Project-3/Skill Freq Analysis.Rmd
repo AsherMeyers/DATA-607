@@ -421,7 +421,12 @@ In our work, TDM serves as a valuable complement to the other methods, even if i
 
 ### Conclusion
 
+
+Three different approaches were applied for data collection and analysis. Analysis of these techniques  yield comparable results with top 5 skills oriented towards ```Big Data, Statistics, R, Machine Learning, and Python``. Big Data skills were emphasized in Press and TDM, while Machine Learning ranked top in Twitter Collection method. 
+These results of the current analysis should not minimize the importance some data science skills over others. The importance of data science skills likely varies by the requirements of the project. Skills can not be important unless they are required by the job parameters. 
+
 There is a dizzying array of buzzwords and skillsets linked to data science; it can be hard to know which ones to pursue, and which to dismiss. Our findings suggest that a few core disciplines underlie the field, and great facility with them is essential. These fields are, broadly, mathematics and computer science. Certain sub-fields within them, like statistics and machine learning, may deserve special study.
+
 
 These subjects should be mastered in concert with the tools of the trade - these currently include R, Python, SQL and other tools. A mathematician without a command of a modern computer language will find it difficult to do data science work. And one should be careful to note that these tools are apt to change, that they are simply the latest incarnation of the methods of data science.
 
