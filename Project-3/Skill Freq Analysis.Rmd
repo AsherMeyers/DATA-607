@@ -222,14 +222,14 @@ barplot(articleSort$frequency[15:1], main = "The 15 Most Mentioned Data Science 
 par(op2)
 ```
 
-#####In table form, Twitter:
+#####In List Form, Twitter:
 
 ```{r}
 kable(twitSort[1:15, 3])
 ```
 
 
-#####And the press:
+#####And the Press:
 
 ```{r}
 kable(articleSort[1:15, 1])
@@ -298,7 +298,9 @@ We see that big data is a clear winner, especially in the press results. But big
 
 Big data has also become a buzzword in its own right, one of dubious distinction critics say. The work it describes spans the fields of applied math and computer science - so it can't be lumped into a bigger field like statistics or computer science. Regardless, it's safe to conclude that to be a data scientist, one must be comfortable with big data.
 
-Next, at #2 in the press results, we have statistics. Statistics is a core competency of data science - as critical as reflexes are to a racecar driver. 
+Next, at #2 in the press results, we have statistics. Statistics is a core competency of data science - as critical as reflexes are to a racecar driver.
+
+In the Twitter data, the results are fairly consistent from day to day, with machine learning coming out on top; the other skills are closer to one another, so their relative frequency fluctuates a bit.
 
 We could go on and classify each skill, but looking at each of these skills, patterns emerge; we can put them into one of two categories:
 
