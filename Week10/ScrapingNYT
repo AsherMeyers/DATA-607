@@ -1,0 +1,146 @@
+---
+title: "Week 10 Assignment: Scraping The Grey Lady"
+author: "Asher Meyers"
+date: "March 26, 2016"
+output: html_document
+---
+
+#Scraping the Grey Lady
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r cars}
+library(RJSONIO)
+library (RCurl)
+library(knitr)
+```
+
+
+First, let's set the terms of our API call. We'll do a search for "Zika Virus" among articles published by the New York Times. To keep things simple initially, we'll do only the first page of results. There are ten results per page, and the first page is numbered 0.
+
+```{r}
+api <- "1b2a171910f0db22167c58a348785f0b:2:74811169"
+query <- "Zika+virus" # Query string, use + instead of space
+```
+
+Now, let's string together the URL required to make the request.
+
+The format is as follows:
+
+http://api.nytimes.com/svc/search/v2/articlesearch.response-format?[q=search term&fq=filter-field:(filter-term)&additional-params=values]&api-key=####
+
+Source: http://developer.nytimes.com/docs/read/article_search_api_v2#examples
+
+We want our response format in JSON, so we put json for that.
+Then we get the contents of the URL via the function getURL, which gives us the content in JSON.
+Then, we convert the JSON content into R objects, via the function fromJSON
+
+But, the search results will have lots of fields unless we limit them. Let's peruse the list of fields available and pick a few: The headline, the author aka byline, the news desk, the word count and the publication date.
+
+Now we have the first page of the most relevant search results for our query.
+
+-------------
+
+```{r}
+response_format <- "json"
+
+URL <- paste("http://api.nytimes.com/svc/search/v2/articlesearch.", response_format, "?", "q=", query,  "&fl=headline,byline,pub_date,news_desk,word_count", "&api-key=", api, sep = "")
+
+gotURL <- getURL(URL)
+RRaw <- fromJSON(gotURL)
+
+```
+
+The search results are in the form of lists, under \$response\$docs. We'll practice drawing out the field values from these results.
+
+```{r}
+
+RRawi <- unlist(RRaw$response$docs[[1]])
+
+RRawi["headline.main"] #the headline
+RRawi["news_desk"] #news desk
+RRawi["word_count"] #word count
+RRawi["pub_date"] #the date
+
+#The byline is a little more complicated, as it's comprised of multiple fields; we'll combine it into one.
+
+byline <- paste(RRawi[c("byline.person.firstname", "byline.person.middlename", "byline.person.lastname", "byline.person.qualifier")], collapse = " ")
+byline
+```
+
+
+##Converting Our Results Into A Dataframe
+
+Let's convert them into a dataframe comprised of the columns of our search. 
+
+
+
+```{r}
+headlines <- c()
+bylines <- c()
+wordcounts <- c()
+desks <- c()
+dates <- c()
+
+for (i in 1:10) {
+  RRawi <- unlist(RRaw$response$docs[[i]])
+  headlines <- append(headlines, RRawi["headline.main"])
+  bylines <- append(bylines, paste(RRawi[c("byline.person.firstname", "byline.person.middlename", "byline.person.lastname", "byline.person.qualifier")], collapse = " "))
+  desks <- append(desks, RRawi["news_desk"])
+  wordcounts <- append(wordcounts, RRawi["word_count"])
+  dates <- append(dates, RRawi["pub_date"] )
+}
+
+dates <- strptime(dates, format="%Y-%m-%d")
+
+RDF <- data.frame(headlines, bylines, desks, wordcounts, dates, stringsAsFactors = FALSE)
+RDFLatest <- RDF[order(dates, decreasing = TRUE), ]
+View(RDFLatest)
+
+kable(RDFLatest)
+
+```
+
+The obvious limitation here is on the number of pages of search results, which is 10. Let's create an option for the user to designate the number of pages.
+
+
+```{r}
+api <- "1b2a171910f0db22167c58a348785f0b:2:74811169"
+query <- "Zika+virus" # Query string, use + instead of space
+pages <- 2 #how many pages of results do we want?
+enddate <- gsub("-","",Sys.Date()) #today's date, can be changed by user; format YYYYMMDD
+response_format <- "json"
+
+
+
+headlines <- c()
+bylines <- c()
+wordcounts <- c()
+desks <- c()
+dates <- c()
+
+for (p in 0:(pages-1)) {
+  URL <- paste("http://api.nytimes.com/svc/search/v2/articlesearch.", response_format, "?", "q=", query,  "&fl=headline,byline,pub_date,news_desk,word_count","&page=",p, "&api-key=", api, "&enddate=", enddate, sep = "")
+  gotURL <- getURL(URL)
+  RRaw <- fromJSON(gotURL)
+  for (i in 1:10) {
+    RRawi <- unlist(RRaw$response$docs[[i]])
+    headlines <- append(headlines, RRawi["headline.main"])
+    bylines <- append(bylines, paste(RRawi[c("byline.person.firstname", "byline.person.middlename", "byline.person.lastname", "byline.person.qualifier")], collapse = " "))
+    desks <- append(desks, RRawi["news_desk"])
+    wordcounts <- append(wordcounts, RRawi["word_count"])
+    dates <- append(dates, RRawi["pub_date"] )
+  }
+}
+
+dates <- strptime(dates, format="%Y-%m-%d")
+
+RDFbulk <- data.frame(headlines, bylines, desks, wordcounts, dates, stringsAsFactors = FALSE)
+RDFbulk <- RDFbulk[order(dates, decreasing = TRUE), ]
+
+View(RDFbulk)
+kable(RDFbulk)
+```
