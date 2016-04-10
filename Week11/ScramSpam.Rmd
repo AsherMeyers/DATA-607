@@ -1,0 +1,170 @@
+---
+title: 'Week 11: Scram, Spam!'
+author: "Asher Meyers"
+date: "April 8, 2016"
+output: html_document
+---
+
+
+The packages tm and RTextTools are required for this code.
+
+```{r}
+suppressMessages(library(knitr))
+suppressMessages(library(tm))
+library(RTextTools)
+library(stringr)
+```
+
+##Objective: Create a Spam Filter
+
+Today we'll be creating a spam filter. We will use the machine learning technique of supervised learning, where we have two initial sets of data, known as training sets; these are classified as spam email and non-spam aka ham email. We will then use a text mining package to identify patterns in each, to create an algorithm that can classify emails as spam or not. 
+
+The idea is that emails have certain textual patterns that suggest they are either spam or not spam - our text mining would try and identify those patterns, and then use them to classify emails as spam or not.
+
+Then, we'll test out our algorithm on emails we know to be either spam or non-spam, and see how accurately our algorithm classifies these emails.
+
+First, let's identify the data we'll be using.
+
+Non-spam training set: 20021010_easy_ham.tar.bz2
+Spam training set: 20021010_spam.tar.bz2
+Non-spam test set: 20030228_easy_ham_2.tar.bz2
+Spam test set: 20030228_spam.tar.bz2
+Source: https://spamassassin.apache.org/publiccorpus/
+
+
+###Where the files are stored
+
+First, we'll encode the corpus locations:
+
+```{r}
+spamdir <- "C:\\Users\\asher\\Documents\\Classes\\CUNY\\DATA 607\\Week 11\\"
+eh1Loc <- paste0(spamdir, "easy_ham")
+eh2Loc <- paste0(spamdir, "easy_ham_2")
+es1Loc <- paste0(spamdir, "easy_spam")
+es2Loc <- paste0(spamdir, "easy_spam_2")
+```
+
+###Creating a Document Term Matrix
+
+Since we'll be processing several corpora, I've built a function to whittle down the steps to one.
+
+The function proceeds like so:
+
+1. Load the directory of files.
+2. Create a corpus from the directory of files.
+3. Create a Document Term Matrix from the corpus
+ 3a. Remove punctuation, numbers, consecutive white spaces and stop words;
+ 3b. Convert all letter characters to lowercase, and words to their word stems;
+ 3c. Retain only words between 3 and 15 characters long, inclusive. This is done because small words are not very suggestive, and big words are likely not to be words at all.
+4. Remove sparse terms - remove words that appear in less than 1% of all files.
+
+```{r}
+dtm_create <- function(corpusLoc) {
+  corpusDir <- DirSource(corpusLoc)
+  corpus <- Corpus(corpusDir)
+  corpus <- DocumentTermMatrix(corpus, control = list(removePunctuation = TRUE, removeNumbers = TRUE, stopwords = TRUE, stemming = TRUE, stripWhitespace = TRUE, wordLengths = c(3, 15)))  
+  corpus <- removeSparseTerms(corpus, 0.99)#removes words that don't appear in 99% of emails
+  corpus
+}
+
+corpora <- c(dtm_create(eh1Loc), 
+             dtm_create(es1Loc), 
+             dtm_create(eh2Loc), 
+             dtm_create(es2Loc)) #Combines the different corpora into one corpus
+```
+
+
+For each document term matrix, we'll have to add a field that classifies it as spam or not. This field is a column whose length is the same as the number of files for each directory. We'll use the list.files function to call up a vector containing the files in each directory, and a length function to count the number of filenames
+
+
+```{r}
+trainLength <- length(list.files(eh1Loc)) + length(list.files(es1Loc)) #Training set length
+totalLength <- trainLength + length(list.files(eh2Loc)) + length(list.files(es2Loc)) #Training+Testing set length
+
+emailLabels<- c(rep("non-spam", length(list.files(eh1Loc))), #Training set non-spam
+                rep("spam", length(list.files(es1Loc))), #Training set spam
+                rep("non-spam", length(list.files(eh2Loc))), #Test set non-spam
+                rep("spam", length(list.files(es2Loc)))) #Test set spam
+```
+
+
+The bounds of our training set will be the number of files in each of the directories it includes
+
+
+###Creating the corpora container
+
+Now, we'll create a container for our corpora, which we'll use to create our model.
+
+The create container parameters are as follows:
+corpora (a document term matrix): the corpora we are using as our training and testing sets
+labels (a character vector): a column that identifies whether each document in the assembled corpora, i.e. each email, is spam or not.
+trainSize: the size of our training set, in this case 2551 non-spam + 501 spam = 3052
+testSize: the size of our testing set, in this case 501 non-spam + 501 spam = 1002
+virgin: this parameter refers to whether the learning is supervised or unsupervised, i.e. whether we know the true classification of the documents under consideration, in this case emails. In this case, the learning is supervised, which corresponds to a setting of FALSE. See [here](http://stats.stackexchange.com/questions/130291/what-does-virgin-data-mean) for background.
+
+
+```{r}
+corporaContainer <- create_container(corpora, labels = emailLabels, trainSize = 1:trainLength, testSize = (trainLength + 1):totalLength, virgin = FALSE)
+```
+
+###Training the models & classifying test emails
+
+The RTextTools package has nine algorithms to choose from: "BAGGING", "BOOSTING", "GLMNET", "MAXENT", "NNET", "RF", "SLDA", "SVM", "TREE"
+
+We create a model using the train_models function, which calls for the corpora container, and a selection of algorithms. 
+
+We will choose to use the MAXENT, SVM and TREE algorithms. The other algorithms, for reasons that are unclear, failed to process results successfully.
+
+
+```{r}
+corporaModels <- train_models(corporaContainer, algorithms = c("MAXENT", "SVM","TREE")) #Create models for classifying emails as spam or not.
+
+results   <- classify_models(corporaContainer, corporaModels) #Apply the models to the testing sets of email, to see whether they'd be classified as spam or not.
+
+comparison <- data.frame(Label = emailLabels[(trainLength + 1):totalLength], MAXENT = results$MAXENTROPY_LABEL, SVM = results$SVM_LABEL, TREE = results$TREE_LABEL)
+
+```
+
+###Results
+Below, we can see the results for each algorithm
+
+```{r}
+
+MAXENT <- table(comparison[,c(2,1)]) #MAXENT results
+SVM <- table(comparison[,c(3,1)]) #SVM results
+TREE <- table(comparison[,c(4,1)]) #TREE results
+
+MAXENT
+SVM
+TREE
+```
+
+We see that of our three algorithms, MAXENT categorizes the most emails correctly, with 1884/1902, vs 1879 for SVM and 1849 for TREE.
+
+Looking further, we see that MAXENT has 17 false positives - that is, falsely categorizes 17 non-spam emails as spam, and 1 false negative, a non-spam email categorized as spam. SVM has 23 false positives, and no false negatives; TREE has 18 false positives, and 35 false negatives.
+
+However, these results are suspiciously high, and I'm afraid my results are somehow tainted, but I have not identified how.
+
+###Sensitivity and Specificity
+
+Below, I've converted my results to what's known as sensitivity and specificity, the likelihood that an email is correctly classified, given that it is spam and given that it isn't, respectively.
+
+```{r}
+prob_table<- function(table) {
+  rns <- c("True", "False")
+  cns <- c("Positive","Negative")
+  TP <- round(table[2,2]/(table[2,2] + table[1,2]),2)
+  TN <- round(table[1,1]/(table[1,1] + table[2,1]),2)
+  print(paste0("Sensitivity: ", TP,"; Specificity: ", TN))
+  data.frame(Positive = c(TP, 1-TP), Negative = c(TN,1-TN), row.names = rns)
+}
+
+prob_table(MAXENT)
+prob_table(SVM)
+prob_table(TREE)
+
+
+```
+
+
+
