@@ -1,0 +1,100 @@
+---
+title: "Project 4"
+author: "Asher Meyers"
+date: "April 20, 2016"
+output: html_document
+---
+
+```{r}
+install.packages("RMySQL")
+library(RMySQL)
+```
+
+## R Markdown
+
+
+```{r}
+flightsDB <- dbConnect(MySQL(), user='root', dbname='flights', host='localhost')
+
+airlines <- dbReadTable(flightsDB, "airlines")
+airports <- dbReadTable(flightsDB, "airports")
+flights <- dbReadTable(flightsDB, "flights")
+planes <- dbReadTable(flightsDB, "planes")
+```
+
+
+
+
+```{r}
+
+write.table(airports, file = "C:/flights/airports.csv", sep = ",", row.names = FALSE)
+write.table(airlines, file = "C:/flights/airlines.csv", sep = ",", row.names = FALSE)
+write.table(flights, file = "C:/flights/flights.csv", sep = ",", row.names = FALSE)
+write.table(planes, file = "C:/flights/planes.csv", sep = ",", row.names = FALSE)
+
+```
+
+
+```{r}
+flights <- read.csv("C:/flights/flights.csv")
+airports <- read.csv("C:/flights/airports.csv")
+airlines <- read.csv("C:/flights/airlines.csv")
+
+flights3 <- flights[1:100,c(8:12)] #First 100 flights, columns carrier, tailnum, flight, origin, dest.
+airportlist <- unique(flights2$dest) #List of airports that are destinations for our flights
+
+flightsairports <- table(flights$dest) #frequency counts of flight destinations
+flightsairports <- sort(flightsairports, decreasing = TRUE) #sort airports by how many times they appear as destinations
+airportlist <- names(flightsairports[1:20])#Pick the 20 most frequently occurring airport destinations
+
+airports3 <- airports[airports$faa %in% airportlist,] #Pull out only the airports that are destinations in the flights selected.
+
+write.table(airports3, file = "C:/flights/airports3.csv", sep = ",", row.names = FALSE)
+write.table(flights3, file = "C:/flights/flights3.csv", sep = ",", row.names = FALSE)
+
+```
+
+
+
+
+###Load the airports
+
+load csv with headers from "file:///flights/airports3.csv" as airports create (a1:Airport {faa: airports.faa, name: airports.name, lat: airports.lat, lon:airports.lon, alt:airports.alt, tz:airports.tz, dst:airports.dst})
+
+###Load the flights
+
+Trying to load all ~30k flights crashed my Neo4j session, so I pared the flights database down to the first 100 flights.
+
+load csv with headers from "file:///flights/flights3.csv" as flights create (a1:Flight {carrier:flights.carrier, tailnum:flights.tailnum, number:flights.flight, origin:flights.origin, dest:flights.dest})
+
+###Load the airlines
+
+load csv with headers from "file:///flights/airlines.csv" as airlines create (a1:Airline {carrier:airlines.carrier, name:airlines.name})
+
+
+###Load the planes
+```
+load csv with headers from "file:///flights/planes.csv" as planes create (a1:Plane {tailnum:planes.tailnum, year:planes.year, type:planes.type, manufacturer:planes.manufacturer, model: planes.model, engines:planes.engines, seats:planes.seats, speed:planes.speed, engine:planes.engine})
+```
+
+###Relate the flight Departures to the airports
+
+```
+load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number: flights.flight}), (b: Airport {faa: flights.dest}) create (a) -[r:ARRIVES ]-> (b)
+```
+
+###Relate the flight arrivals to the airports
+The command is as follows:
+
+```
+load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number: flights.flight}), (b: Airport {faa: flights.origin}) create (a) -[r:DEPARTS ]-> (b)
+```
+
+One problem however: our flights don't have an origin airport that also serves as another flight's arrival location, so no relationships will be formed from this step.
+
+
+####Relate the airlines to the flights
+
+```
+load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number: flights.flight}), (b: Airline {carrier: flights.carrier}) create (a) -[r:FLOWN_BY ]-> (b)
+```
