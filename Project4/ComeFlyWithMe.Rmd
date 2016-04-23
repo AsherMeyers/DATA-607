@@ -44,10 +44,8 @@ We'll identify what the most frequently occurring airports in our flights arriva
 ```
  [1] "ORD" "ATL" "LAX" "BOS" "MCO" "CLT" "SFO" 
 ```
-![airports]
-(https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%201%2010%20Airports.JPG)
 
-Initially, I had selected the top 20, but this made graphical presentations a bit harder, so I opted to simplify. This will also make it easier to manually locate the airports in Neo4j's graphical interface.
+Initially, I had selected the top 20, but this made graphical presentations a bit harder, so I opted to simplify. This will also make it easier to manually map the airports in Neo4j's graphical interface.
 
 
 ```{r}
@@ -57,16 +55,16 @@ flightsairports <- table(flights$dest) #frequency counts of flight destinations
 flightsairports <- sort(flightsairports, decreasing = TRUE) #sort airports by how many times they appear as destinations
 airportlist <- names(flightsairports[1:7])#Pick the 7 most frequently occurring airport destinations
 airportlist <- append(airportlist, c("EWR", "JFK", "LGA")) #Adding Newark, JFK and LaGuardia airports
-
 airports3 <- airports[airports$faa %in% airportlist,1:2] #Pull out only the airports that are in the flights selected.
-
 write.table(airports3, file = "C:/flights/airports3.csv", sep = ",", row.names = FALSE)
 ```
 
+###Choosing Our Flights
+With our airports selected, we move onto choosing our flights
 
 Since there are thousands of flights, and we will be using a graphical interface to understand, we will narrow our flights to a random 50 flights whose destinations are among the 10 airports we've selected. 
 
-For the fields of the airline name, we will selet the plane's number, the flight number, the origin, and the destination.
+For the fields of the airline name, we will select the plane's number, the flight number, the origin, and the destination.
 
 
 ```{r}
@@ -82,36 +80,82 @@ airlines3 <- airlines[airlines$carrier %in% flights50$carrier,]
 write.table(airlines3, file = "C:/flights/airlines3.csv", sep = ",", row.names = FALSE)
 ```
 
+###Neo4J
 
-```{r}
-flightsRoutes <- flights10A[sample(1:nrow(flights10A),100),c(1,4:5)]
-airlinesRoutes <- airlines[airlines$carrier %in% flightsRoutes$carrier, 1:2] #Pull out only the airlines that are in the flights selected.
-write.table(airlinesRoutes, file = "C:/flights/airlinesRoutes.csv", sep = ",", row.names = FALSE)
-write.table(flightsRoutes, file = "C:/flights/flightsRoutes.csv", sep = ",", row.names = FALSE)
+
+####Load the airports
+
+```
+load csv with headers from "file:///flights/airports3.csv" as airports create (a1:Airport {faa: airports.faa, name: airports.name, lat: airports.lat, lon:airports.lon, alt:airports.alt, tz:airports.tz, dst:airports.dst})
 ```
 
+![airports]
+(https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%201%2010%20Airports.JPG)
+
+####Load the flights
+
+```
+load csv with headers from "file:///flights/flights3.csv" as flights create (a1:Flight {carrier:flights.carrier, tailnum:flights.tailnum, number:flights.flight, origin:flights.origin, dest:flights.dest})
+```
+
+![flights](https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%202%2050%20flights.JPG)
+
+####Relate the flight arrivals to the airports
+
+```
+load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number: flights.flight}), (b: Airport {faa: flights.dest}) create (a) -[r:ARRIVES ]-> (b)
+```
+
+![Arrivals](https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%203%20Flights%20Airports%20and%20Arrivals.JPG)
+
+###Relate the flight origins to the airports
 
 
+```
+load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number: flights.flight}), (b: Airport {faa: flights.origin}) create (a) -[r:DEPARTS ]-> (b)
+```
+
+![Origins](https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%204%20Flights%20Airports%2C%20Departures%20and%20Arrivals.JPG)
+
+The airports were manually dragged into a formation that roughly depicts their relative locations.
 
 ##Carrier routes
 
-Load airports:
+Here, I wanted to focus less on the flights, and more on the frequency of various routes by each airline.
 
+My R code:
+
+```{r}
+flightsRoutes <- flights10A[sample(1:nrow(flights10A),100),c(1,4:5)] #Pick 100 random flights from those destined for one of our 7 selected destination airports
+airlinesRoutes <- airlines[airlines$carrier %in% flightsRoutes$carrier, 1:2] #Pull out only the airlines that are in the flights selected.
+write.table(airlinesRoutes, file = "C:/flights/airlinesRoutes.csv", sep = ",", row.names = FALSE) #Write the airlines for these flights to a CSV
+write.table(flightsRoutes, file = "C:/flights/flightsRoutes.csv", sep = ",", row.names = FALSE) #Write the flights to a CSV.
+```
+
+###In Neo4J, investigating airline routes
+
+####Load airports:
+
+```
 load csv with headers from "file:///flights/airports3.csv" as airports create (a1:Airport {faa: airports.faa, name: airports.name})
+```
 
-Load the airlines:
+####Load the airlines:
 
+```
 load csv with headers from "file:///flights/airlinesRoutes.csv" as airlines create (a1:Airline {carrier:airlines.carrier, name:airlines.name})
-
+```
+![Airports_Airlines](https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%205%20Airlines%20and%20Airports.JPG)
 
 Create the relationships:
 
+```
 load csv with headers from "file:///flights/flightsroutes.csv" as flights match (a: Airline {carrier:flights.carrier}), (b: Airport {faa:flights.dest}) create (a) -[r:DEST] -> (b)
 
 load csv with headers from "file:///flights/flightsroutes.csv" as flights match (a: Airline {carrier:flights.carrier}), (b: Airport {faa:flights.origin}) create (b) -[r:ORIG] -> (a)
+```
 
-
-
+![AirlineRoutes](https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%206%20Airline%20Routes.JPG)
 
 ##Let's take a deeper look at one airline's network
 
@@ -120,7 +164,6 @@ First, we'll identify the airline that runs the most flights in our flights data
 ```{r}
 table(flights$carrier) #The number of flights flown by each airline
 head(names(sort(table(flights$carrier), decreasing = TRUE)), 1) #The name of the airline with the most flights
-
 ```
 
 It happens to be United Airlines, with 58,665 flights out of a total of 336,776, for a share of 17.4%. We'll create a CSV for just United Airlines
@@ -138,7 +181,6 @@ Let's identify the most frequent destinations for this set of flights.
 flightsUA <- subset(flights, flights$carrier == "UA")[,c(8,12)] #Subset flights into UA flights, carrying only the destination information
 Top10NY_UADest <- names(sort(table(flightsUA$dest), decreasing = TRUE)[1:10]) #The top 10 UA destinations for flights leaving NYC
 airportsUA <- airports[airports$faa %in% Top10NY_UADest,1:2] #Pull out only the airports that are in the flights selected.
-
 write.table(airportsUA, file = "C:/flights/airportsUA.csv", sep = ",", row.names = FALSE)
 ```
 
@@ -159,29 +201,18 @@ Now, for our neo4j queries to show United Airlines' frequent destination map:
 
 Load the airline:
 
-load csv with headers from "file:///flights/airlinesUA.csv" as airlines create (a1:Airline {carrier:airlines.carrier, name:airlines.name})
+```load csv with headers from "file:///flights/airlinesUA.csv" as airlines create (a1:Airline {carrier:airlines.carrier, name:airlines.name})```
 
 Load the destination airports:
 
-load csv with headers from "file:///flights/airportsUA.csv" as airports create (a1:Airport {faa: airports.faa, name: airports.name})
-
-
-
+```load csv with headers from "file:///flights/airportsUA.csv" as airports create (a1:Airport {faa: airports.faa, name: airports.name})```
 
 Relate the destinations to the airline
 
 load csv with headers from "file:///flights/flightsUA500.csv" as flights match (a: Airline {carrier: flights.carrier}), (b: Airport {faa: flights.dest}) create (a) - [r:ARRIVES_AT] -> (b)
 
 
-
-Create the United Airline node:
-
-Create (a: Airline {faa: 'UA', name: 'United Airlines'})
-
-
-
-Now that we have our datasets, let's migrate them to Neo4J. 
-
+![United](https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%207%20United%20Airlines.JPG)
 
 ###Load the airports
 
