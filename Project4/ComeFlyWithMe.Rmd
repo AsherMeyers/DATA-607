@@ -20,12 +20,10 @@ flightsDB <- dbConnect(MySQL(), user='root', dbname='flights', host='localhost')
 airlines <- dbReadTable(flightsDB, "airlines")
 airports <- dbReadTable(flightsDB, "airports")
 flights <- dbReadTable(flightsDB, "flights")
-planes <- dbReadTable(flightsDB, "planes")
 
 write.table(airports, file = "C:/flights/airports.csv", sep = ",", row.names = FALSE)
 write.table(airlines, file = "C:/flights/airlines.csv", sep = ",", row.names = FALSE)
 write.table(flights, file = "C:/flights/flights.csv", sep = ",", row.names = FALSE)
-write.table(planes, file = "C:/flights/planes.csv", sep = ",", row.names = FALSE)
 
 ```
 
