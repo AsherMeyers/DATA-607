@@ -45,7 +45,7 @@ We'll identify what the most frequently occurring airports in our flights arriva
  [1] "ORD" "ATL" "LAX" "BOS" "MCO" "CLT" "SFO" 
 ```
 ![airports]
-https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%201%2010%20Airports.JPG
+(https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%201%2010%20Airports.JPG)
 
 Initially, I had selected the top 20, but this made graphical presentations a bit harder, so I opted to simplify. This will also make it easier to manually locate the airports in Neo4j's graphical interface.
 
