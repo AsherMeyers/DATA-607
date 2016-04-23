@@ -209,68 +209,16 @@ Load the destination airports:
 
 Relate the destinations to the airline
 
-load csv with headers from "file:///flights/flightsUA500.csv" as flights match (a: Airline {carrier: flights.carrier}), (b: Airport {faa: flights.dest}) create (a) - [r:ARRIVES_AT] -> (b)
+```load csv with headers from "file:///flights/flightsUA500.csv" as flights match (a: Airline {carrier: flights.carrier}), (b: Airport {faa: flights.dest}) create (a) - [r:ARRIVES_AT] -> (b)```
 
 
 ![United](https://raw.githubusercontent.com/AsherMeyers/DATA-607/master/Project4/Figure%207%20United%20Airlines.JPG)
 
-###Load the airports
+##Conclusions
 
-```
-load csv with headers from "file:///flights/airports3.csv" as airports create (a1:Airport {faa: airports.faa, name: airports.name, lat: airports.lat, lon:airports.lon, alt:airports.alt, tz:airports.tz, dst:airports.dst})
-```
+I found Neo4J to be an effective tool in displaying the various relationships among the elements of our dataset. While one can certainly quickly and easily edit relational databases in MySQL, the display of those databases is limited to tables. The graphic depictions that Neo4J offers allow more insight into the topic of our study. 
 
+For instance, mapping an airline's flights to its origin and destination airports can give us a quick insight into a number of details about an airline. Such as, what areas does this airline serve? What are its most highly trafficked routes? Who are they competing with?
 
-###Load the flights
+These kinds of questions could be answered via non-graphical means, but it would be a much more arduous effort. This is especially important when your task is convincing people in the course of a 5 minute presentation - you simply won't have the time, and your audience the familiarity, to grasp your point without the aid of visuals. 
 
-```
-load csv with headers from "file:///flights/flights3.csv" as flights create (a1:Flight {carrier:flights.carrier, tailnum:flights.tailnum, number:flights.flight, origin:flights.origin, dest:flights.dest})
-```
-
-###Relate the flight Departures to the airports
-
-```
-load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number: flights.flight}), (b: Airport {faa: flights.dest}) create (a) -[r:ARRIVES ]-> (b)
-```
-
-###Relate the flight origins to the airports
-
-Relating the origins of flights to the airports
-
-```
-load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number: flights.flight}), (b: Airport {faa: flights.origin}) create (a) -[r:DEPARTS ]-> (b)
-```
-
-###Load the airlines
-
-load csv with headers from "file:///flights/airlines.csv" as airlines create (a1:Airline {carrier:airlines.carrier, name:airlines.name})
-
-
-
-###Relate the flights to their carrier
-
-load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number:flights.flight}), (b: Airline {carrier: flights.carrier}) create (a) -[r:CARRIED_BY] -> (b)
-
-
-###Load the planes
-```
-load csv with headers from "file:///flights/planes.csv" as planes create (a1:Plane {tailnum:planes.tailnum, year:planes.year, type:planes.type, manufacturer:planes.manufacturer, model: planes.model, engines:planes.engines, seats:planes.seats, speed:planes.speed, engine:planes.engine})
-```
-
-
-
-###Relate the flight arrivals to the airports
-The command is as follows:
-
-```
-load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number: flights.flight}), (b: Airport {faa: flights.origin}) create (a) -[r:DEPARTS ]-> (b)
-```
-
-One problem however: our flights don't have an origin airport that also serves as another flight's arrival location, so no relationships will be formed from this step.
-
-
-####Relate the airlines to the flights
-
-```
-load csv with headers from "file:///flights/flights3.csv" as flights match (a: Flight {number: flights.flight}), (b: Airline {carrier: flights.carrier}) create (a) -[r:FLOWN_BY ]-> (b)
-```
