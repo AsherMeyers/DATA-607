@@ -21,6 +21,8 @@ library(ggplot2)
 
 ##Paved Paradise: Santa Monica's Parking Lots
 
+![](http://i.imgur.com/uR0ponO.jpg)
+
 ##Exploratory Data Analysis
 
 Let's start with the library. We'll bring year 2015's data
@@ -445,26 +447,29 @@ CommuterWHeatMap2 <- heatmap(CommuterWM2, Rowv=NA, Colv=NA,
 
 ###Summer Weekenders
 
+We will use the official definition of summer, whose dates for 2015 were June 20 to Sep 21, i.e. days 171 to 264
+
 ```{r}
-CommuterS <- subset(VacancyRates, Weekday < 6 & Hour < 18 & Hour > 6 & Minute %% 5 == 0 & (Month > 3 & Month < 11)) #April - October Weekdays
-CommuterSA <- aggregate(CommuterS[7:24], list(CommuterS$Minute, CommuterS$Hour), mean)
+Weekenders <- subset(VacancyRates, Weekday > 5 & Hour < 21 & Hour > 9 & Minute %% 5 == 0 & DayNum > 170 & DayNum < 265) #April - October Weekdays
+WeekendersA <- aggregate(Weekenders[7:24], list(Weekenders$Minute, Weekenders$Hour), mean)
 
-CommuterSM <- round(data.matrix(CommuterSA[ , (ncol(CommuterSA)-17):ncol(CommuterSA)]),2)
-rownames(CommuterSM) <-  c("7 AM", rep("",11), "8 AM", rep("",11), "9 AM", rep("",11), "10 AM", rep("",11), "11 AM", rep("",11), "12 PM", rep("",11), 
-                           "1 PM", rep("",11), "2 PM", rep("",11), "3 PM", rep("",11), "4 PM", rep("",11), "5 PM", rep("",11))
+WeekendersM <- round(data.matrix(WeekendersA[ , (ncol(WeekendersA)-17):ncol(WeekendersA)]),2)
+rownames(WeekendersM) <-  c("10 AM", rep("",11), "11 AM", rep("",11), "12 PM", rep("",11), 
+                            "1 PM", rep("",11), "2 PM", rep("",11), "3 PM", rep("",11), "4 PM", rep("",11), "5 PM", rep("",11),
+                            "6 PM", rep("",11), "7 PM", rep("",11), "8 PM", rep("",11))
 
 
-CommuterSHeatMap <- heatmap(CommuterSM, Rowv=NA, Colv=NA, 
+WeekendersHeatMap <- heatmap(WeekendersM, Rowv=NA, Colv=NA, 
                      col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
                      scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
 
-CommuterPeakS <- subset(CommuterS, Hour == 13 & Minute == 0)
+CommuterPeakS <- subset(Weekenders, Hour == 14 & Minute == 0)
 round(colSums(CommuterPeakS[ ,7:24] < 0.11)/nrow(CommuterPeakS), 2)
 ```
 
+On summer weekends, the peak parking utilization time is a little later, at roughly 2 PM. Structure 3 hits low vacancy (sub-11%) at 1 PM every single weekend! Lot 1N, Lot 8N, and Structure 1 hit low vacancy rates 77%, 46% and 85% of weekend days, respectively. 
 
-
-
+Since lower vacancy rates are more common across the board on summer weekends, cutting prices on higher vacancy lots may not suffice, and prices would have to rise at some lots, particularly Structure 3, Structure 1 and Structure 1N.
 
 
 Naturally, it can be hard to forecast demand, and set prices at the optimal levels. But if parking lots routinely get full in a predictable pattern, we can say that the prices are too low, and queuing occurs.
