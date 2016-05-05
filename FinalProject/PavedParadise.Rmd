@@ -240,7 +240,7 @@ Let's start with Black Friday, as the analysis is the simplest, and is one day.
 
 ###Black Friday
 
-[](http://blogs-images.forbes.com/clareoconnor/files/2014/11/shoppingcover-1940x1293.jpg)
+[Black Friday Festivities](http://blogs-images.forbes.com/clareoconnor/files/2014/11/shoppingcover-1940x1293.jpg)
 
 ```{r}
 VacancyRates <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyRates.csv", stringsAsFactors = FALSE)[ , 2:25]
