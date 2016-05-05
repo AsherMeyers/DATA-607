@@ -187,13 +187,15 @@ Now that we have our data, we can start exploring a number of issues.
 
 
 ###Are Parking Lots Too Full, Too Empty, or Just Right?
-At any given moment, we have a more or less fixed number of parking spaces. If there are more motorists seeking a space than there are spaces, we'll have to *ration* the supply of parking somehow. We can use one of two tools:
+At any given moment, we have a more or less fixed number of parking spaces. If there are more motorists seeking a space than there are spaces available, we'll have to *ration* the supply of parking somehow. We can use one of two tools:
 
 **Prices:** We set a price that's high enough that anyone willing to pay it can get a spot. You can think of this as demand based pricing. Additionally, we can set prices to maximize *revenue and profits* or *usage*. Considering that we're studying public garages whose purpose is to give people access to local beaches and merchants, we'll stick to considering the maximizing usage approach. 
 
 In that case, the optimal price is the lowest price that keeps a few spots in each garage available.
 
 **Queues:** First come, first serve - at the given price, there are more cars seeking spaces than there are spaces in the structure; the structure gets filled up; those who arrive when it's full must detour to a different parking lot.
+
+***
 
 Superficially, it looks like many parking structures, including those in our dataset, use prices to ration supply. But in truth, they use a hodgepodge of both approaches; when prices are sub-optimal and garages get filled up, queuing is being used to allocate spaces.
 
