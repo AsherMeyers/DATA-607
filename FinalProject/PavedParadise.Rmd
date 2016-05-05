@@ -195,15 +195,20 @@ In that case, the optimal price is the lowest price that keeps a few spots in ea
 
 **Queues:** First come, first serve - at the given price, there are more cars seeking spaces than there are spaces in the structure; the structure gets filled up; those who arrive when it's full must detour to a different parking lot.
 
+
 ***
 
-Superficially, it looks like many parking structures, including those in our dataset, use prices to ration supply. But in truth, they use a hodgepodge of both approaches; when prices are sub-optimal and garages get filled up, queuing is being used to allocate spaces.
+
+On the surface, it looks like many parking structures, including those in our dataset, use prices to ration supply. But in truth, they use a hodgepodge of both approaches; when prices are sub-optimal and garages get filled up, queuing is being used to allocate spaces.
+
 
 ####Which approach should be used? 
-Superficially, making all parking free and thus using a queuing approach maximizes usage of the parking lots, which is one goal of public infrastructure in general. 
+
+On first glance, making all parking free and thus using a queuing approach maximizes usage of the parking lots, which is one goal of public infrastructure in general. 
 
 The problem with that is that with a queuing approach, you get lots of motorists searching for parking, causing traffic. Studies have found that ["30 percent of the cars in congested downtown traffic were cruising for parking"] (http://www.accessmagazine.org/articles/spring-2011/free-parking-free-markets/)
 
+![](http://www.accessmagazine.org/wp-content/uploads/sites/7/2014/10/Cruising-3.png)
 
 Naturally, it can be hard to forecast demand, and set prices at the optimal levels. But if parking lots routinely get full in a predictable pattern, we can say that the prices are too low.
 
