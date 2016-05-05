@@ -14,6 +14,9 @@ library(RJSONIO)
 library(RCurl)
 library(stringr)
 library(plyr)
+library(knitr)
+library(RColorBrewer)
+library(ggplot2)
 ```
 
 ##Paved Paradise: Santa Monica's Parking Lots
@@ -146,7 +149,7 @@ Minute: Minute, which occur in increments of five; sensors report parking availa
 ```{r}
 ParkingAll$EpochTime <- as.POSIXct(strptime(ParkingAll[ ,1], "%m/%d/%Y %I:%M:%S %p"))
 
-ParkingAll$Month <- as.integer(strptime(ParkingAll$EpochTime, "%Y-%m-%d")$mon+1) #Obtain the month of a given date
+ParkingAll$Month <- as.integer(strptime(ParkingAll$EpochTime, "%Y-%m-%d")$mon+1) #Obtain the month of a given date, 1-12
 ParkingAll$DayNum <- strptime(ParkingAll$EpochTime, "%Y-%m-%d")$yday+1 #Obtain the daynumber, eg Feb 1 = 32 
 ParkingAll$Weekday <- strptime(ParkingAll$EpochTime, "%Y-%m-%d")$wday+1 #Obtain the weekday, 1-7, 1 = Sunday
 ParkingAll$Hour <- strptime(ParkingAll$EpochTime, "%Y-%m-%d %H:%M")$hour
@@ -167,17 +170,20 @@ The format of the datasets will be the columns relating to time and date, follow
 
 ```{r}
 MaxCapacity <- as.integer(sapply(ParkingAll[, 2:19], max)) #Operationally define max capacity as maximum available in 2015
-VacancyData <- ParkingAll[2:19] / MaxCapacity[col(ParkingAll[, 2:19])] #Divide number of spaces available by max capacity vector
+VacancyData <- round(ParkingAll[2:19] / MaxCapacity[col(ParkingAll[, 2:19])], 2) #Divide number of spaces available by max capacity vector
 VacancyRates <- data.frame(ParkingAll[ , 20:25], VacancyData) #Create a dataset containing the vacancy rate of each garage at each moment
-write.csv(VacancyRates, file = paste0(projectDir, "VacancyRates.csv"))
+
 
 #To homogenize our datasets, we'll recreate the dataset containing the absolute number of parking spaces as well
 VacancyNumbers <- data.frame(ParkingAll[ ,20:25], ParkingAll[2:19])
-write.csv(VacancyNumbers, file = paste0(projectDir, "VacancyNumbers.csv"))
+
 
 #Let's put each dataset in chronological order, starting with January 1, 2015.
 VacancyRates <- VacancyRates[order(VacancyRates$DayNum, VacancyRates$Hour, VacancyRates$Minute),]
 VacancyNumbers <- VacancyNumbers[order(VacancyNumbers$DayNum, VacancyNumbers$Hour, VacancyNumbers$Minute),]
+
+write.csv(VacancyRates, file = paste0(projectDir, "VacancyRates.csv"))
+write.csv(VacancyNumbers, file = paste0(projectDir, "VacancyNumbers.csv"))
 ```
 
 
@@ -210,7 +216,258 @@ The problem with that is that with a queuing approach, you get lots of motorists
 
 ![](http://www.accessmagazine.org/wp-content/uploads/sites/7/2014/10/Cruising-3.png)
 
-Naturally, it can be hard to forecast demand, and set prices at the optimal levels. But if parking lots routinely get full in a predictable pattern, we can say that the prices are too low.
+Congestion is a pressing issue in cities around the world, and Santa Monica is no exception. The city, along with Venice, is home to the beaches of Los Angeles. Millions of people visit the beaches annually - and many by car that they park nearby. The adjacent streets are nowhere near big enough to allow cars to move at the posted speed limits at popular times, like the summer weekends. 
+
+Therefore, a pricing approach is preferred. With proper pricing, a motorist can be assured that he'll usually find a spot at whatever garage he chooses, except when there are anomalous spikes in demand. Over time, motorists will understand that they generally face a tradeoff, of choosing between a convenient parking space and a cheap one.
+
+Now, we'll explore how often parking garages get filled up. If we find repeated, predictable instances of garages filling up, we can recommend raising prices at those times to reduce the congestion caused by people cruising for parking.
+
+####Examining Vacancy Rates
+
+
+For now, let's confine our results to a few groupings:
+
+* Black Friday - the 'biggest shopping day of the year', November 27, the 331st day of the year
+* Twilight Concert Series: On Thursday nights in mid to late summer, free concerts are held at the Santa Monica Pier
+* Commuters - this period will probably consist largely of commuters - people working in downtown Santa Monica
+* Summer Weekenders - this segment will consist of people going to Santa Monica for work, for the beach, and for shopping on summer weekends.
+
+
+While there is an active nightlife in Santa Monica, it is dwarfed in size by the commuter and weekend visitor populations. Anecdotally, it also seems bargoers are more apt to use cabs over personally owned cars and transit.
+
+Let's start with Black Friday, as the analysis is the simplest, and is one day.
+
+
+###Black Friday
+
+[](http://blogs-images.forbes.com/clareoconnor/files/2014/11/shoppingcover-1940x1293.jpg)
+
+```{r}
+VacancyRates <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyRates.csv", stringsAsFactors = FALSE)[ , 2:25]
+VacancyNumbers <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyNumbers.csv", stringsAsFactors = FALSE)[ , 2:25]
+HourNames <- c( paste0(seq(1, 11), " AM"), "12 PM", paste0(seq(1, 11), " PM"), "12 AM")
+```
+
+```{r}
+BlackFriday <- subset(VacancyRates, Minute == 0 & DayNum == 331) #Black Friday vacancy rates, on the hour
+View(BlackFriday[ , c(1, 7:24)])
+kable(BlackFriday)
+
+BlackFridayM <- data.matrix(BlackFriday[ , (ncol(BlackFriday)-17):ncol(BlackFriday)])
+rownames(BlackFridayM) <- c("12 AM", paste0(seq(1, 11), " AM"), "12 PM", paste0(seq(1, 11), " PM"))
+
+
+BFHeatMap <- heatmap(BlackFridayM, Rowv=NA, Colv=NA, 
+                     col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
+                     scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
+```
+
+We can narrow down our investigation to the times and places where parking is least available.
+
+Let's focus on structures and hours that have at least one segment with less than 10% vacancy:
+
+```{r}
+
+BlackFridayM2 <- BlackFridayM[apply(BlackFridayM, 1, min) < 0.10, apply(BlackFridayM, 2, min) < 0.10]
+BFHeatMap2 <- heatmap(BlackFridayM2, Rowv=NA, Colv=NA, 
+                     col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
+                     scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
+```
+
+We can see that the parking supply at structure 3, and to a lesser extent, Structure 1, hits zero on Black Friday. In the map below, we can see that these two structures are right next to the main shopping area. 
+
+[Parking Structure 1 & 3](http://i.imgur.com/nwrdmx9.png)
+
+While this is a clear case of underpriced parking, it may not be advisable to raise the price for just this one day - Black Friday tends to draw crowds to chain stores whose goods are available at a number of locations; higher parking prices for one day might scare customers into going elsewhere for this one day. It would also complicate the rate structure for parking.
+
+And for good measure, we'll compare this day to the following Friday, to see if Black Friday is different from a neighboring Friday.
+
+```{r}
+NonBlackFriday <- subset(VacancyRates, Minute == 0 & DayNum == 338) #December 4 vacancy rates, on the hour
+
+NonBlackFridayM <- data.matrix(NonBlackFriday[ , (ncol(NonBlackFriday)-17):ncol(NonBlackFriday)])
+rownames(NonBlackFridayM) <- c("12 AM", paste0(seq(1, 11), " AM"), "12 PM", paste0(seq(1, 11), " PM"))
+
+NonBlackFridayM2 <- NonBlackFridayM[apply(NonBlackFridayM, 1, min) < 0.10, apply(NonBlackFridayM, 2, min) < 0.10]
+NonBFHeatMap2 <- heatmap(NonBlackFridayM2, Rowv=NA, Colv=NA, 
+                     col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
+                     scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
+```
+
+We see that the same structures were most likely to be full, but only two structures crossed our threshold of a sub-10% vacancy rate, as opposed to 7. Notably, this day was not a holiday.
+
+###Twilight Concert Series
+
+A popular concert series was held from July 9 to September 10 (DayNum = 190, 253), on the Pier at 7 PM. How was parking use impacted?
+
+This time, we'll have to aggregate the information from multiple days' worth of data.
+
+```{r}
+ConcertThursday <- subset(VacancyRates, Minute == 0 & Weekday == 4 & DayNum > 189 & DayNum < 254 & Hour > 16)
+ConcertThursdayA <- aggregate(ConcertThursday[7:24], list(ConcertThursday$Hour), mean)
+
+ConcertThursdayM <- round(data.matrix(ConcertThursdayA[ , (ncol(ConcertThursdayA)-17):ncol(ConcertThursdayA)]),2)
+rownames(ConcertThursdayM) <- c(paste0(seq(5, 11), " PM"))
+
+ConcertThursdayM2 <- ConcertThursdayM[apply(ConcertThursdayM, 1, min) < 0.10, apply(ConcertThursdayM, 2, min) < 0.10]
+ConcertThursdayHeatMap <- heatmap(ConcertThursdayM2, Rowv=NA, Colv=NA, 
+                     col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
+                     scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
+```
+
+We see that structure 3 comes up again as least vacant, but also structures 4 and 8. Structure 8 is located close to the freeway exit as well as the concert - a convenient place to park for concertgoers. 
+
+A brief investigation suggests that the Pier parking deck isn't actually open for public use at this time, which explains why its stated vacancy rate is not less than 10%.
+
+
+```{r}
+VacancyRates <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyRates.csv", stringsAsFactors = FALSE)[ , 2:25]
+VacancyNumbers <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyNumbers.csv", stringsAsFactors = FALSE)[ , 2:25]
+
+#At what hour does parking occupancy peak?
+
+Weekdays <- subset(VacancyRates, Minute == 0 & Weekday < 6 )
+Weekends <- subset(VacancyRates, Minute == 0 & Weekday > 5 & Month > 5 & Month < 9) #Vacancy rates at each hour for weekends in June, July and August
+View(round(aggregate(Weekends[7:24], list(Weekends$Hour), mean),2))
+
+BlackFriday <- subset(VacancyRates, Minute == 0 & DayNum == 331)
+BlackFridayA <- round(aggregate(BlackFriday[7:24], list(Weekends$Hour), mean),2)
+
+
+PeakParking <- subset(VacancyRates, Month > 5 & Month < 9 & Weekday > 5 & Hour > 10 & Hour < 17  & Minute == 0)
+PeakParking <- data.frame(PeakParking[ , 1:6], round(PeakParking[ , 7:24], 2))
+View(aggregate(PeakParking[, 7:24], list(PeakParking$Weekday, PeakParking$Hour), mean)
+
+)
+```
+
+
+###Commuters
+
+Santa Monica splits its parking prices into two periods, November 1 through March 31, and April 1 through October 31. Some, but not all, price each period differently. We will split our analysis accordingly, into Winter and Summer periods. 
+
+Period 1, Winter: January, February, March, November, December 2015; Weekdays; 7 AM - 6 PM
+Period 2, Summer: April - October 2015; Weekdays; 7 AM - 6 PM
+
+```{r}
+#CommuterW <- subset(VacancyRates, Minute == 0 & Weekday < 6 & Hour < 19 & Hour > 6 & (Month < 4 | Month > 10))
+CommuterW <- subset(VacancyRates, Weekday < 6 & Hour < 19 & Hour > 6 & (Month < 4 | Month > 10))
+CommuterWA <- aggregate(CommuterW[7:24], list(CommuterW$Hour), mean)
+
+CommuterWM <- round(data.matrix(CommuterWA[ , (ncol(CommuterWA)-17):ncol(CommuterWA)]),2)
+rownames(CommuterWM) <- HourNames[7:18]
+
+
+CommuterWHeatMap <- heatmap(CommuterWM, Rowv=NA, Colv=NA, 
+                     col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
+                     scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
+```
+
+
+###Parking Every 5 Minutes
+
+Instead of aggregating parking use hourly, we can get a resolution 12 times as high, by averaging the vacancy rates for every five minute period. A similar but smoother pattern emerges.
+
+```{r}
+CommuterW <- subset(VacancyRates, Weekday < 6 & Hour < 16 & Hour > 10 & Minute %% 5 == 0 & (Month < 4 | Month > 10))
+CommuterWA <- aggregate(CommuterW[7:24], list(CommuterW$Minute, CommuterW$Hour), mean)
+
+CommuterWM <- round(data.matrix(CommuterWA[ , (ncol(CommuterWA)-17):ncol(CommuterWA)]),2)
+rownames(CommuterWM) <-  c("11 AM", rep("",11), "12 PM", rep("",11), "1 PM", rep("",11), "2 PM", rep("",11), "3 PM", rep("",11))
+
+
+CommuterWHeatMap <- heatmap(CommuterWM, Rowv=NA, Colv=NA, 
+                     col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
+                     scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
+```
+
+
+Across parking structures, it looks as if 1 PM is when peak occupancy occurs during the workday. In this period, only Structure 3 averaged a vacancy rate below 10% in any hour between 7 AM and 6 PM.  However, the average masks day to day variation. We might ask, how often does parking go below 11% vacancy at the peak time of 1 PM? 
+
+```{r}
+CommuterPeakW <- subset(CommuterW, Hour == 13 & Minute == 0)
+round(colSums(CommuterPeakW[ ,7:24] < 0.11)/nrow(CommuterPeakW), 2)
+```
+
+We see that Structure 3 goes below 11% vacancy on 95% of weekdays at 1 PM; Structure 1 and Structure 9 go below 11% vacancy at 1 PM 48% and 61% of the time, respectively.
+
+How do we keep vacancy rates at 10% or at these structures, to prevent people from cruising for parking? 
+
+A bit of background: Parking demand is coming from two different groups, workers and visitors. Workers stay parked for shifts that last several hours, while visitors linger less, on average. It's not until both groups are using a structure concurrently that a structure gets filled up. This time period runs from approximately 11 AM to 4 PM.
+
+The structures with low vacancies also tend to be very conveniently placed for visitors, as they're close to many shops and restaurants. It's believed that visitors generate more tax revenue, relative to the amount of time they spend - so visitors receive cheaper or free parking if they stay 2.5 hours or less.
+
+The [rate structure](http://www.smgov.net/uploadedFiles/Departments/PCD/Transportation/Motorists-Parking/Parking-Rates.pdf) for the low vacancy lots is as follows:
+
+*90 minutes free parking.
+*$1.00 next hour
+*Each additional 30 minutes, $1.50
+*$14.00 Daily max
+*Alternately, $120 monthly, for weekdays, 6 AM - 7 PM
+
+In order to create more vacancy at Structures 1, 3 and 9, we have two options - raise prices on these structures, or make neighboring structures cheaper. Both are worth exploring - perhaps, say, raising prices for Structure 3 to $140 monthly, keeping prices for 1 and 9 unchanged, and reducing prices of the other structures to $100 a month. And since the city wants to appeal to visitors, pricing for them would remain unchanged.
+
+An even more elegant solution is simply eliminating the monthly parking pass, [as a Seattle hospital did](http://usa.streetsblog.org/2015/05/08/how-seattle-childrens-hospital-took-the-lead-on-healthy-transportation/), to reward people for not driving alone to work. As the hospital official said, “There are no monthly parking passes,” she said. “You pay by the day. That monthly pass is really a 30-day investment. It sends a signal to somebody to optimize that investment by getting as much parking as possible by driving.” When parking is paid daily, via a debit-account style system, people can save money by choosing not to drive sporadically. And since prices are ultimately set by demand, the daily rates would become lower once the cheap monthly rate disappeared.  
+
+
+###Summer Commuter Parking, Every 5 Minutes
+
+
+```{r}
+CommuterS <- subset(VacancyRates, Weekday < 6 & Hour < 18 & Hour > 6 & Minute %% 5 == 0 & (Month > 3 & Month < 11)) #April - October Weekdays
+CommuterSA <- aggregate(CommuterS[7:24], list(CommuterS$Minute, CommuterS$Hour), mean)
+
+CommuterSM <- round(data.matrix(CommuterSA[ , (ncol(CommuterSA)-17):ncol(CommuterSA)]),2)
+rownames(CommuterSM) <-  c("7 AM", rep("",11), "8 AM", rep("",11), "9 AM", rep("",11), "10 AM", rep("",11), "11 AM", rep("",11), "12 PM", rep("",11), 
+                           "1 PM", rep("",11), "2 PM", rep("",11), "3 PM", rep("",11), "4 PM", rep("",11), "5 PM", rep("",11))
+
+
+CommuterSHeatMap <- heatmap(CommuterSM, Rowv=NA, Colv=NA, 
+                     col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
+                     scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
+
+CommuterPeakS <- subset(CommuterS, Hour == 13 & Minute == 0)
+round(colSums(CommuterPeakS[ ,7:24] < 0.11)/nrow(CommuterPeakS), 2)
+```
+
+
+We see a similar pattern with summer commuters - Structure 3 goes below 11% vacancy on 95% of days at 1 PM, with Structures 1 and 9 reaching low vacancy levels at peak times 45% and 55% of summer workdays, respectively. The prescription remains the same - some mix of increasing monthly prices on these structures and lowering monthly prices at other lots.
+
+
+```{r}
+CommuterWM2 <- CommuterWM[apply(CommuterWM, 1, min) < 0.15, apply(CommuterWM, 2, min) < 0.15]
+CommuterWHeatMap2 <- heatmap(CommuterWM2, Rowv=NA, Colv=NA, 
+                     col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
+                     scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
+```
+
+
+
+###Summer Weekenders
+
+```{r}
+CommuterS <- subset(VacancyRates, Weekday < 6 & Hour < 18 & Hour > 6 & Minute %% 5 == 0 & (Month > 3 & Month < 11)) #April - October Weekdays
+CommuterSA <- aggregate(CommuterS[7:24], list(CommuterS$Minute, CommuterS$Hour), mean)
+
+CommuterSM <- round(data.matrix(CommuterSA[ , (ncol(CommuterSA)-17):ncol(CommuterSA)]),2)
+rownames(CommuterSM) <-  c("7 AM", rep("",11), "8 AM", rep("",11), "9 AM", rep("",11), "10 AM", rep("",11), "11 AM", rep("",11), "12 PM", rep("",11), 
+                           "1 PM", rep("",11), "2 PM", rep("",11), "3 PM", rep("",11), "4 PM", rep("",11), "5 PM", rep("",11))
+
+
+CommuterSHeatMap <- heatmap(CommuterSM, Rowv=NA, Colv=NA, 
+                     col = colorRampPalette(c("red", "orange", "yellow", "green"))(256), 
+                     scale="none", margins=c(6,4.5), xlab = "Parking Lot", ylab = "Hour")
+
+CommuterPeakS <- subset(CommuterS, Hour == 13 & Minute == 0)
+round(colSums(CommuterPeakS[ ,7:24] < 0.11)/nrow(CommuterPeakS), 2)
+```
+
+
+
+
+
+
+Naturally, it can be hard to forecast demand, and set prices at the optimal levels. But if parking lots routinely get full in a predictable pattern, we can say that the prices are too low, and queuing occurs.
 
 
 
