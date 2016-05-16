@@ -8,12 +8,67 @@ output: html_document
 ```{r setup, include=FALSE}
 
 require(stringr)
+require(data.table)
 ```
+
+
+###Update Raw Data File
+```{r}
+ParkingRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/ParkingRawU.csv", stringsAsFactors = FALSE, header = TRUE, sep = ",")
+
+Latest <- ParkingRaw$Date.Time[nrow(ParkingRaw)] #Last data point in raw dataset
+Latest <- as.POSIXct(strptime(Latest, "%m/%d/%Y %I:%M:%S %p")) #Recoding time format to match API specs
+Current <- format(Sys.time(), tz="America/Los_Angeles",usetz=TRUE) #Set the currnt time as an endpoint for the API call.
+APILink <- "https://data.smgov.net/resource/tce2-7ir6.csv"
+
+start <- paste0("%27", substr(Latest,1,10),"T", substr(Latest,12,18),"1%27")
+finish <- paste0("%27", substr(Current,1,10),"T", substr(Current,12,19),"%27")
+
+AppToken <- "QT8fWTQjKdIwy22DoFZ0bfuEU"
+
+ParkingRawURL <- paste0(APILink,
+                       "?$where=date_time%20between%20", start,"%20and%20", finish,
+                       "&$select=date_time,%20lot_name,%20available_spaces",
+                       "&$order=date_time%20ASC,%20lot_name%20ASC",
+                       "&$limit=50000")
+
+ParkingRawUpdate <- read.csv(url(ParkingRawURL), row.names = NULL, stringsAsFactors = FALSE)
+ParkingRawUpdate <- ParkingRawUpdate[ , c(2,3,1)]
+names(ParkingRawUpdate) <- c("Date.Time","Lot","Available")
+ParkingRawUpdate$Date.Time <- format(strptime(ParkingRawUpdate$Date.Time,"%Y-%m-%dT%H:%M:%S"), "%m/%d/%Y %I:%M:%S %p")
+
+
+ParkingRawU <- rbind(ParkingRaw, ParkingRawUpdate)
+write.csv(ParkingRawU, file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/ParkingRawU.csv", row.names = FALSE)
+
+
+
+##Update the weather data
+
+WeatherDataRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/WeatherDataRawU.csv", sep = ",", stringsAsFactors = FALSE)
+LatestW <- WeatherDataRaw[nrow(WeatherDataRaw), 1] #Find last date with weather data
+StartW <-  gsub("-","/",as.Date(LatestW, format = "%m/%d/%Y")+1) #Add a day and convert hyphens to slashes
+
+
+NewURL <- paste0("https://www.wunderground.com/history/airport/KSMO/", StartW, "/CustomHistory.html?dayend=", format(Sys.Date()-1, "%d&monthend=%m&yearend=%Y"), "&format=1")
+
+WeatherDataNew <- read.csv(url(NewURL), stringsAsFactors = FALSE)
+setnames(WeatherDataNew, old = names(WeatherDataNew), new = names(WeatherDataRaw)) #Change column names of update to match the old column names
+WeatherDataNew$PST <- format(as.POSIXct(strptime(WeatherDataNew$PST, "%Y-%m-%d")), "%m/%d/%Y")
+
+
+WeatherDataRawU <- rbind(WeatherDataRaw, WeatherDataNew)
+
+write.csv(WeatherDataRawU,file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/WeatherDataRawU.csv", row.names = FALSE)
+```
+
+
+
 
 
 ```{r}
 
-ParKingRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/ParkingRaw14-16.csv", stringsAsFactors = FALSE, header = TRUE, sep = ",")
+ParKingRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/ParkingRawU.csv", stringsAsFactors = FALSE, header = TRUE, sep = ",")
 ParkingData <- unique(ParKingRaw) #Remove duplicate data points
 BadTimestamp <- names(sort(table(ParkingData$Date.Time),decreasing=TRUE)[1]) #Reveals that one timestamp has more than one entry per parking lot - we'll remove this timestamp. Now, all timestamps have exactly 18 readings - one per garage.
 ParkingData <- subset(ParkingData, Date.Time != BadTimestamp) #Removes bad timestamp, at Nov 1, 2015, 1 AM.
@@ -57,28 +112,19 @@ VacancyRatesAll2M <- data.frame(ParkingDataM[ , 1:8], VacancyDataAll2M) #Create 
 VacancyRatesAll2M$Total <- round(ParkingDataM$Total / sum(MaxCapacity),3)
 
 
-```
-
 #Merging Parking Data with Weather and Holiday Data
-
-
-```{r}
-WeatherDataRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/WeatherData14To16.csv", sep = ",", stringsAsFactors = FALSE)
+#WeatherDataRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/WeatherData14To16.csv", sep = ",", stringsAsFactors = FALSE)
+WeatherDataRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/WeatherDataRawU.csv", sep = ",", stringsAsFactors = FALSE)
 WeatherData <- WeatherDataRaw[ , c(1:4, 20, 21, 22)]
 WeatherData$Year <- as.integer(str_sub(WeatherData$PST, -4, -1))
-WeatherData$Month <- str_extract(WeatherData$PST,"[:digit:]{1,2}")
+WeatherData$Month <- as.integer(str_extract(WeatherData$PST,"[:digit:]{1,2}"))
 WeatherData$DayM <- str_extract(str_extract(WeatherData$PST,"[:digit:]{1,2}[:print:]{1}[:digit:]{4}"), "[:digit:]{1,2}")
 WeatherData$RainfallIn <- round(WeatherData$Precipitationmm/25.4, 1)
 WeatherData <- WeatherData[ , c(8:10, 2:4, 6:7, 11)]
 
-View(WeatherData)
+VacancyWeatherAll <- setorder(merge(VacancyRatesAll2M, WeatherData), EpochTime)
+VacancyWeatherHourly <- subset(VacancyWeatherAll, Minute == 0 & Hour < 7 & Hour > 0)
 
-VacancyWeatherAll <- merge(VacancyRatesAll2M, WeatherData)
-
-write.csv(VacancyWeatherAll, file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyWeather14To16.csv")
-
-VacancyWeatherHourly <- subset(VacancyWeatherAll, Minute == 0)
-write.csv(VacancyWeatherHourly, file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyWeatherHourly.csv")
+write.csv(VacancyWeatherAll, file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyWeatherAllU.csv", row.names = FALSE)
+write.csv(VacancyWeatherHourly, file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyWeatherHourly.csv", row.names = FALSE)
 ```
-
-write.csv(VacancyRatesAll2M, file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/VacancyRates14To16.csv")
