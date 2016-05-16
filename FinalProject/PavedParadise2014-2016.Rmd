@@ -11,39 +11,50 @@ require(stringr)
 require(data.table)
 ```
 
+Steps To Download riginal dataset:
 
-###Update Raw Data File
+1. Go to https://data.smgov.net/Transportation/Parking-Lot-Counts/ng8m-khuz.
+2. Select 'Manage,' a brown button in the top right.
+3. Select Date/Time, Lot, and Available fields.
+4. Export file to CSV.
+5. Use code below to update the parking and weather datasets.
+
+
+
+###Update Parking Raw Data File
 ```{r}
-ParkingRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/ParkingRawU.csv", stringsAsFactors = FALSE, header = TRUE, sep = ",")
+ParkingRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/ParkingRawU.csv", stringsAsFactors = FALSE, header = TRUE, sep = ",") #Read in the existing parking dataset
 
-Latest <- ParkingRaw$Date.Time[nrow(ParkingRaw)] #Last data point in raw dataset
-Latest <- as.POSIXct(strptime(Latest, "%m/%d/%Y %I:%M:%S %p")) #Recoding time format to match API specs
+Latest <- ParkingRaw$Date.Time[nrow(ParkingRaw)] #Identify last data point in raw dataset
+Latest <- as.POSIXct(strptime(Latest, "%m/%d/%Y %I:%M:%S %p")) #Recode time format to match API specs
 Current <- format(Sys.time(), tz="America/Los_Angeles",usetz=TRUE) #Set the currnt time as an endpoint for the API call.
-APILink <- "https://data.smgov.net/resource/tce2-7ir6.csv"
+APILink <- "https://data.smgov.net/resource/tce2-7ir6.csv" #Location of API
 
-start <- paste0("%27", substr(Latest,1,10),"T", substr(Latest,12,18),"1%27")
-finish <- paste0("%27", substr(Current,1,10),"T", substr(Current,12,19),"%27")
+start <- paste0("%27", substr(Latest,1,10),"T", substr(Latest,12,18),"1%27") #Start date of API call
+finish <- paste0("%27", substr(Current,1,10),"T", substr(Current,12,19),"%27") #End date of API call
 
-AppToken <- "QT8fWTQjKdIwy22DoFZ0bfuEU"
+AppToken <- "QT8fWTQjKdIwy22DoFZ0bfuEU" #API token
 
 ParkingRawURL <- paste0(APILink,
                        "?$where=date_time%20between%20", start,"%20and%20", finish,
                        "&$select=date_time,%20lot_name,%20available_spaces",
                        "&$order=date_time%20ASC,%20lot_name%20ASC",
-                       "&$limit=50000")
+                       "&$limit=50000") #URL for API call
 
-ParkingRawUpdate <- read.csv(url(ParkingRawURL), row.names = NULL, stringsAsFactors = FALSE)
-ParkingRawUpdate <- ParkingRawUpdate[ , c(2,3,1)]
-names(ParkingRawUpdate) <- c("Date.Time","Lot","Available")
-ParkingRawUpdate$Date.Time <- format(strptime(ParkingRawUpdate$Date.Time,"%Y-%m-%dT%H:%M:%S"), "%m/%d/%Y %I:%M:%S %p")
-
-
-ParkingRawU <- rbind(ParkingRaw, ParkingRawUpdate)
-write.csv(ParkingRawU, file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/ParkingRawU.csv", row.names = FALSE)
+ParkingRawUpdate <- read.csv(url(ParkingRawURL), row.names = NULL, stringsAsFactors = FALSE) #Make the API call and download it to a csv.
+ParkingRawUpdate <- ParkingRawUpdate[ , c(2,3,1)] #Use only the relevant columns, date, lot name, and number of spaces available.
+names(ParkingRawUpdate) <- c("Date.Time","Lot","Available") #Rename columns to match original dataset.
+ParkingRawUpdate$Date.Time <- format(strptime(ParkingRawUpdate$Date.Time,"%Y-%m-%dT%H:%M:%S"), "%m/%d/%Y %I:%M:%S %p") #Convert date format to match original
 
 
+ParkingRawU <- rbind(ParkingRaw, ParkingRawUpdate) #Combine old and new dataset
+write.csv(ParkingRawU, file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/ParkingRawU.csv", row.names = FALSE) #Write file to a CSV on the local hard drive
+```
 
-##Update the weather data
+###Update the Weather Raw Data File
+
+```{r}
+
 
 WeatherDataRaw <- read.csv(file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607/Final Project/WeatherDataRawU.csv", sep = ",", stringsAsFactors = FALSE)
 LatestW <- WeatherDataRaw[nrow(WeatherDataRaw), 1] #Find last date with weather data
@@ -64,7 +75,7 @@ write.csv(WeatherDataRawU,file = "C:/Users/asher/Documents/Classes/CUNY/DATA 607
 
 
 
-
+###Update Datasets Used For Analysis
 
 ```{r}
 
