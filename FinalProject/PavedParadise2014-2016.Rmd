@@ -11,7 +11,9 @@ require(stringr)
 require(data.table)
 ```
 
-Steps To Download riginal dataset:
+This is my code for retrieving, updating and formatting the parking data of Santa Monica's Open Data portal.
+
+Steps To Download Original Dataset:
 
 1. Go to https://data.smgov.net/Transportation/Parking-Lot-Counts/ng8m-khuz.
 2. Select 'Manage,' a brown button in the top right.
